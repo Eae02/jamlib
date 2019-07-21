@@ -1,0 +1,18 @@
+[submodule "Deps/openal"]
+	path = Deps/openal
+	url = https://github.com/kcat/openal-soft.git
+[submodule "Deps/gl3w"]
+	path = Deps/gl3w
+	url = https://github.com/skaslev/gl3w.git
+[submodule "Deps/stb"]
+	path = Deps/stb
+	url = https://github.com/nothings/stb.git
+[submodule "Deps/utfcpp"]
+	path = Deps/utfcpp
+	url = https://github.com/ledger/utfcpp.git
+[submodule "Deps/gsl"]
+	path = Deps/gsl
+	url = https://github.com/microsoft/GSL.git
+[submodule "Deps/glm"]
+	path = Deps/glm
+	url = https://github.com/g-truc/glm.git
