@@ -1,4 +1,0 @@
-set(CMAKE_SYSTEM_NAME Web)
-
-set(CMAKE_C_COMPILER emcc)
-set(CMAKE_CXX_COMPILER em++)
