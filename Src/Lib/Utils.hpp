@@ -11,11 +11,32 @@
 
 #include "API.hpp"
 
+#define JM_BIT_FIELD(T) \
+inline constexpr T operator|(T a, T b) noexcept \
+{ return static_cast<T>(static_cast<int>(a) | static_cast<int>(b)); }\
+inline constexpr T operator&(T a, T b) noexcept \
+{ return static_cast<T>(static_cast<int>(a) & static_cast<int>(b)); }\
+inline constexpr T& operator|=(T& a, T b) noexcept \
+{ a = a | b; return a; }
+
 namespace jm
 {
 	constexpr float PI = 3.141592653589793f;
 	constexpr float TWO_PI = 6.283185307179586f;
 	constexpr float HALF_PI = 1.5707963267948966f;
+	
+	/***
+	 * Checks the the given bitfield has a specific flag set.
+	 * @tparam T The type of the bitfield enum.
+	 * @param bits The bitfield to check.
+	 * @param flag The flag to check for.
+	 * @return Whether the bitfield has the flag set.
+	 */
+	template <typename T>
+	inline constexpr bool HasFlag(T bits, T flag)
+	{
+		return (int)(bits & flag) != 0;
+	}
 	
 	/***
 	 * Deleter for use with unique_ptr which calls std::free

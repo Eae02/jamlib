@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <cmath>
+#include <vector>
 #include <gsl/span>
 
 namespace jm
@@ -82,6 +83,8 @@ namespace jm
 		{ return m_mipLevels; }
 		inline uint32_t Handle() const
 		{ return m_handle.Get(); }
+		inline uint32_t UniqueID() const
+		{ return m_uniqueId; }
 		
 		void Bind(int unit) const;
 		
@@ -129,6 +132,16 @@ namespace jm
 		uint32_t Height() const { return m_height; }
 		
 	private:
+		friend void SetRenderTarget(Texture2D* color, Texture2D* depth);
+		
+		struct Framebuffer
+		{
+			uint32_t depthUID;
+			detail::GLHandle<detail::GLObjectTypes::Framebuffer> framebuffer;
+		};
+		
+		std::vector<Framebuffer> m_framebuffers;
+		
 		uint32_t m_width;
 		uint32_t m_height;
 	};

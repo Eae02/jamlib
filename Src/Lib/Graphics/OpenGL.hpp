@@ -6,15 +6,15 @@
 
 #ifdef JM_USE_GLES
 #include <GLES3/gl32.h>
-#define JM_GL45(code, fallback) fallback
+#define JM_MODERN_GL(code, fallback) fallback
 #else
 #include <GL/gl3w.h>
-#define JM_GL45(code, fallback) if (jm::detail::hasGL45) { code } else { fallback }
+#define JM_MODERN_GL(code, fallback) if (jm::detail::hasModernGL) { code } else { fallback }
 #endif
 
 namespace jm::detail
 {
-	extern bool hasGL45;
+	extern bool hasModernGL;
 	
 	bool InitializeOpenGL(bool debug);
 }

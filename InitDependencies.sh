@@ -3,8 +3,8 @@
 mkdir -p Deps/opengl
 python2 Deps/gl3w/gl3w_gen.py --root Deps/opengl > /dev/null
 
-##Downloads and extracts SDL2 for MinGW
-if [ -d "Deps/sdl2" ]; then
+##Downloads and extracts SDL2
+if [[ -d "Deps/sdl2" ]]; then
 	echo "Skipping download sdl2 since Deps/sdl2 already exists"
 else
 	mkdir -p Deps/sdl2

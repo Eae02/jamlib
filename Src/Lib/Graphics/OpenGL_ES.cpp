@@ -3,11 +3,11 @@
 #ifdef JM_USE_GLES
 namespace jm::detail
 {
-	bool hasGL45 = false;
+	bool hasModernGL = false;
 	
 	bool InitializeOpenGL(bool debug)
 	{
-		
+		return true;
 	}
 }
 #endif

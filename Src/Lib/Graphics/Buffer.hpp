@@ -3,21 +3,25 @@
 #include "GLHandle.hpp"
 #include "Format.hpp"
 #include "../API.hpp"
+#include "../Utils.hpp"
 
 namespace jm
 {
+	enum class BufferFlags
+	{
+		None          = 0,
+		VertexBuffer  = 1,
+		IndexBuffer   = 2,
+		UniformBuffer = 4,
+		AllowUpdate   = 8
+	};
+	
+	JM_BIT_FIELD(BufferFlags)
+	
 	class JAPI Buffer
 	{
 	public:
-		enum UsageFlags
-		{
-			USAGE_VERTEX_BUFFER  = 1,
-			USAGE_INDEX_BUFFER   = 2,
-			USAGE_UNIFORM_BUFFER = 4,
-			USAGE_UPDATE         = 8
-		};
-		
-		Buffer(UsageFlags flags, uint64_t size, const void* data = nullptr);
+		Buffer(BufferFlags flags, uint64_t size, const void* data = nullptr);
 		
 		void Realloc(uint64_t size, const void* data = nullptr);
 		

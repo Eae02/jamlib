@@ -29,7 +29,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	target_link_libraries(jam PUBLIC Threads::Threads dl)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 	set_target_properties(jam sandbox PROPERTIES
-		LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s USE_SDL=2 -s WASM=1 -s USE_WEBGL2=1 -s FULL_ES3=1 -s FETCH=1"
+		LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s USE_SDL=2 -s WASM=1 -s USE_WEBGL2=1 -s FULL_ES3=1 -s FETCH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']"
 	)
 	target_compile_options(jam PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
 endif()
@@ -54,11 +54,12 @@ target_include_directories(jam
 )
 
 target_include_directories(jam SYSTEM
+	PUBLIC
+		Deps/gsl/include
+		Deps/glm
 	PRIVATE
 		Deps/opengl/include
 		Deps/sdl2/include
 		Deps/stb
 		Deps/utfcpp/source
-		Deps/gsl/include
-		Deps/glm
 )

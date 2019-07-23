@@ -2,11 +2,12 @@
 
 #include <iostream>
 #include <string_view>
+#include <SDL_video.h>
 
 #ifndef JM_USE_GLES
 namespace jm::detail
 {
-	bool hasGL45;
+	bool hasModernGL;
 	
 	static std::string glVendorName;
 	
@@ -46,15 +47,45 @@ namespace jm::detail
 			std::abort();
 	}
 	
+	static const char* RequiredExtensions[] =
+	{
+		"GL_ARB_texture_storage"
+	};
+	
+	static const char* ModernExtensions[] = 
+	{
+		"GL_ARB_direct_state_access",
+		"GL_ARB_buffer_storage"
+	};
+	
 	bool InitializeOpenGL(bool debug)
 	{
 		if (gl3wInit())
 		{
-			std::cerr << "Error initializing OpenGL" << std::endl;
+			std::cerr << "Error initializing OpenGL\n";
 			return false;
 		}
 		
 		glVendorName = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+		
+		for (const char* ext : RequiredExtensions)
+		{
+			if (!SDL_GL_ExtensionSupported(ext))
+			{
+				std::cerr << "Required OpenGL extension not supported: '" << ext << "'.\n";
+				return false;
+			}
+		}
+		
+		hasModernGL = true;
+		for (const char* ext : ModernExtensions)
+		{
+			if (!SDL_GL_ExtensionSupported(ext))
+			{
+				hasModernGL = false;
+				break;
+			}
+		}
 		
 		if (debug && glDebugMessageCallback)
 		{
@@ -62,8 +93,6 @@ namespace jm::detail
 			glDebugMessageCallback(OpenGLMessageCallback, nullptr);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 		}
-		
-		hasGL45 = gl3wIsSupported(4, 5);
 		
 		return true;
 	}

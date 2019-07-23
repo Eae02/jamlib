@@ -78,7 +78,7 @@ namespace jm
 		: m_target(target), m_uniqueId(nextTextureId++), m_format(format), m_mipLevels(mipLevels)
 	{
 		GLuint texture;
-		JM_GL45(
+		JM_MODERN_GL(
 			glCreateTextures(target, 1, &texture);
 			,
 			glGenTextures(1, &texture);
@@ -148,7 +148,7 @@ namespace jm
 	
 	void Texture::SetParameterI(uint32_t parameterName, int value)
 	{
-		JM_GL45(
+		JM_MODERN_GL(
 			glTextureParameteri(Handle(), parameterName, value);
 			,
 			Bind(-1);
@@ -158,7 +158,7 @@ namespace jm
 	
 	void Texture::SetParameterF(uint32_t parameterName, float value)
 	{
-		JM_GL45(
+		JM_MODERN_GL(
 			glTextureParameterf(Handle(), parameterName, value);
 			,
 			Bind(-1);
@@ -168,7 +168,7 @@ namespace jm
 	
 	void Texture::Bind(int unit) const
 	{
-		JM_GL45(
+		JM_MODERN_GL(
 			if (unit == -1 && currentBoundTexture[0] != m_uniqueId)
 			{
 				glBindTexture(m_target, m_handle.Get());
@@ -197,7 +197,7 @@ namespace jm
 	
 	void Texture::GenerateMipmaps()
 	{
-		JM_GL45(
+		JM_MODERN_GL(
 			glGenerateTextureMipmap(Handle());
 			,
 			Bind(-1);
@@ -208,7 +208,7 @@ namespace jm
 	Texture2D::Texture2D(uint32_t width, uint32_t height, Format format, uint32_t mipLevels)
 		: Texture(GL_TEXTURE_2D, format, mipLevels ? mipLevels : CalculateMipLevels(std::min(width, height)))
 	{
-		JM_GL45(
+		JM_MODERN_GL(
 			glTextureStorage2D(Handle(), MipLevels(), detail::GetGLFormat(format), width, height);
 			,
 			Bind(-1);
@@ -222,7 +222,7 @@ namespace jm
 		const GLenum format = detail::GetGLTextureFormat(dataType, dataChannels);
 		const GLenum type = detail::GetGLDataType(dataType);
 		
-		JM_GL45(
+		JM_MODERN_GL(
 			glTextureSubImage2D(Handle(), level, xOffset, yOffset, width, height, format, type, data);
 			,
 			Bind(-1);

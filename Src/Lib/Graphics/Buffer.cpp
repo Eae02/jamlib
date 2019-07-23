@@ -3,7 +3,7 @@
 
 namespace jm
 {
-	Buffer::Buffer(UsageFlags flags, uint64_t size, const void* data)
+	Buffer::Buffer(BufferFlags flags, uint64_t size, const void* data)
 		: m_size(size)
 	{
 		GLuint buffer;
@@ -13,26 +13,35 @@ namespace jm
 		int numIncompFlags = 0;
 		
 		m_target = GL_ARRAY_BUFFER;
-		if (flags & USAGE_VERTEX_BUFFER)
+		if (HasFlag(flags, BufferFlags::VertexBuffer))
 		{
 			numIncompFlags++;
 		}
-		if (flags & USAGE_INDEX_BUFFER)
+		if (HasFlag(flags, BufferFlags::IndexBuffer))
 		{
 			m_target = GL_ELEMENT_ARRAY_BUFFER;
 			numIncompFlags++;
 		}
-		if (flags & USAGE_UNIFORM_BUFFER)
+		if (HasFlag(flags, BufferFlags::UniformBuffer))
 		{
 			m_target = GL_UNIFORM_BUFFER;
 			numIncompFlags++;
 		}
 		
+		if (numIncompFlags > 1)
+		{
+			std::cerr << "Multiple incompatible buffer flags specified." << std::endl;
+			std::abort();
+		}
+		
 		m_glUsageFlags = GL_STATIC_DRAW;
-		if (flags & USAGE_UPDATE)
+		if (HasFlag(flags, BufferFlags::AllowUpdate))
 			m_glUsageFlags = GL_DYNAMIC_DRAW;
 		
-		Realloc(size, data);
+		if (size != 0)
+		{
+			Realloc(size, data);
+		}
 	}
 	
 	void Buffer::Realloc(uint64_t size, const void* data)

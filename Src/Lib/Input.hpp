@@ -145,9 +145,9 @@ namespace jm
 	
 	namespace detail
 	{
-		extern InputState* currentIS;
-		extern InputState* previousIS;
-		extern std::string inputtedText;
+		JAPI extern InputState* currentIS;
+		JAPI extern InputState* previousIS;
+		JAPI extern std::string inputtedText;
 	}
 	
 	class JAPI InputState
