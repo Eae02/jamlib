@@ -1,7 +1,4 @@
-#include "../Lib/Game.hpp"
-#include "../Lib/Input.hpp"
-#include "../Lib/Graphics/Graphics.hpp"
-#include "../Lib/Graphics/Graphics2D.hpp"
+#include <JamLib.hpp>
 
 struct Game : jm::Game
 {
@@ -32,5 +29,3 @@ struct Game : jm::Game
 	float rx = 10;
 	float vx = 0;
 };
-
-JM_ENTRY_POINT(Game)

@@ -3,6 +3,16 @@
 mkdir -p Deps/opengl
 python2 Deps/gl3w/gl3w_gen.py --root Deps/opengl > /dev/null
 
+#Downloads miniz
+if [[ -d "Deps/miniz" ]]; then
+	echo "Skipping download miniz since Deps/miniz already exists"
+else
+	mkdir -p Deps/miniz
+	curl -L https://github.com/richgel999/miniz/releases/download/2.1.0/miniz-2.1.0.zip > Deps/miniz/miniz.zip
+	unzip -j Deps/miniz/miniz.zip miniz.c -d Deps/miniz
+	unzip -j Deps/miniz/miniz.zip miniz.h -d Deps/miniz
+fi
+
 ##Downloads and extracts SDL2
 if [[ -d "Deps/sdl2" ]]; then
 	echo "Skipping download sdl2 since Deps/sdl2 already exists"

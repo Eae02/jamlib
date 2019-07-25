@@ -23,12 +23,17 @@ namespace jm
 		}
 	}
 	
+	inline bool IsNormalized(DataType dataType)
+	{
+		return dataType == DataType::UInt8Norm || dataType == DataType::UInt16Norm || dataType == DataType::UInt32Norm;
+	}
+	
 #ifdef __EMSCRIPTEN__
 	void VertexLayout::InitAttribute(int location, int binding, DataType dataType, int components, uint32_t offset)
 	{
 		Bind();
 		glEnableVertexAttribArray(location);
-		m_attributes.push_back({ location, binding, detail::GetGLDataType(dataType), false, components, offset });
+		m_attributes.push_back({ location, binding, detail::GetGLDataType(dataType), IsNormalized(dataType), components, offset });
 	}
 	
 	void VertexLayout::InitBinding(int binding, uint32_t stride, InputRate inputRate)
@@ -58,7 +63,7 @@ namespace jm
 	{
 		Bind();
 		glEnableVertexAttribArray(location);
-		glVertexAttribFormat(location, components, detail::GetGLDataType(dataType), GL_FALSE, offset);
+		glVertexAttribFormat(location, components, detail::GetGLDataType(dataType), IsNormalized(dataType), offset);
 		glVertexAttribBinding(location, binding);
 	}
 	

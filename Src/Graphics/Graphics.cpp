@@ -1,6 +1,8 @@
-#include <iostream>
 #include "Graphics.hpp"
 #include "OpenGL.hpp"
+#include "Texture.hpp"
+
+#include <iostream>
 
 namespace jm
 {

@@ -1,5 +1,6 @@
 #include "Texture.hpp"
 #include "OpenGL.hpp"
+#include "../Asset.hpp"
 
 #include <stb_image.h>
 #include <iostream>
@@ -206,7 +207,8 @@ namespace jm
 	}
 	
 	Texture2D::Texture2D(uint32_t width, uint32_t height, Format format, uint32_t mipLevels)
-		: Texture(GL_TEXTURE_2D, format, mipLevels ? mipLevels : CalculateMipLevels(std::min(width, height)))
+		: Texture(GL_TEXTURE_2D, format, mipLevels ? mipLevels : CalculateMipLevels(std::min(width, height))),
+		  m_width(width), m_height(height)
 	{
 		JM_MODERN_GL(
 			glTextureStorage2D(Handle(), MipLevels(), detail::GetGLFormat(format), width, height);
@@ -252,7 +254,7 @@ namespace jm
 		
 		Texture2D texture(width, height, format, (flags & LOAD_NO_MIPMAPS) ? 1 : 0);
 		
-		texture.SetData(0, 0, 0, width, height, DataType::UInt8, channels, imageData);
+		texture.SetData(0, 0, 0, width, height, DataType::UInt8Norm, channels, imageData);
 		
 		if (!(flags & LOAD_NO_MIPMAPS))
 		{
@@ -262,5 +264,20 @@ namespace jm
 		stbi_image_free(imageData);
 		
 		return texture;
+	}
+	
+	void Texture2D::RegisterAssetLoader()
+	{
+		stbi_set_flip_vertically_on_load(true);
+		
+		auto assetLoader = [] (gsl::span<const char> fileData) -> Texture2D
+		{
+			return Texture2D::Load(fileData, (LoadFlags)0);
+		};
+		
+		jm::RegisterAssetLoader<Texture2D>("png", assetLoader);
+		jm::RegisterAssetLoader<Texture2D>("jpg", assetLoader);
+		jm::RegisterAssetLoader<Texture2D>("jpeg", assetLoader);
+		jm::RegisterAssetLoader<Texture2D>("tga", assetLoader);
 	}
 }

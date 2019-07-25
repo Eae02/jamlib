@@ -169,7 +169,7 @@ void main()
 				const float v = (texRectangle.y + vOffsets[y]) / texture.Height();
 				
 				const float offX = texRectangle.w * x - origin.x;
-				const float offY = -texRectangle.h * y - origin.y;
+				const float offY = texRectangle.h * y - origin.y;
 				const float rOffX = offX * cosR - offY * sinR;
 				const float rOffY = offX * sinR + offY * cosR;
 				

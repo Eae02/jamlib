@@ -182,7 +182,7 @@ namespace jm
 		
 		void OnButtonDown(Button button)
 		{
-			m_isButtonDown[(int)button / 8] |= 1 << ((int)button % 8);
+			m_isButtonDown[(int)button / 8] |= 1U << ((int)button % 8);
 			m_pressed = button;
 		}
 		
@@ -190,7 +190,7 @@ namespace jm
 		{
 			if (button == m_pressed)
 				m_pressed = Button::Unknown;
-			m_isButtonDown[(int)button / 8] &= ~(1 << ((int)button % 8));
+			m_isButtonDown[(int)button / 8] &= ~(1U << ((uint32_t)button % 8));
 		}
 		
 		void OnAxisMoved(ControllerAxis axis, float newValue)
@@ -247,7 +247,7 @@ namespace jm
 		
 	private:
 		Button m_pressed = Button::Unknown;
-		char m_isButtonDown[13] = { };
+		uint8_t m_isButtonDown[13] = { };
 		float m_axisValues[6] = { };
 		
 		static_assert(sizeof(m_isButtonDown) * 8 >= NUM_BUTTONS);

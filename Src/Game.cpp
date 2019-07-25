@@ -3,6 +3,7 @@
 #include "Graphics/OpenGL.hpp"
 #include "Graphics/Graphics.hpp"
 #include "Graphics/Graphics2D.hpp"
+#include "Asset.hpp"
 
 #include <SDL.h>
 #include <iostream>
@@ -75,6 +76,10 @@ namespace jm
 		
 		InitSetUniform();
 		Graphics2D::InitStatic();
+		
+		Texture2D::RegisterAssetLoader();
+		
+		detail::LoadAssets();
 	}
 	
 	inline void Uninit()

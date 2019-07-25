@@ -7,6 +7,7 @@
 #include <optional>
 #include <cmath>
 #include <vector>
+#include <any>
 #include <gsl/span>
 
 namespace jm
@@ -127,6 +128,8 @@ namespace jm
 		             DataType dataType, uint32_t dataChannels, const void* data);
 		
 		static Texture2D Load(gsl::span<const char> fileData, LoadFlags flags);
+		
+		static void RegisterAssetLoader();
 		
 		uint32_t Width() const { return m_width; }
 		uint32_t Height() const { return m_height; }
