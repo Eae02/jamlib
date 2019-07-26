@@ -1,13 +1,16 @@
 #include "OpenGL.hpp"
 
+#ifndef JM_USE_GLES
+
 #include <iostream>
 #include <string_view>
 #include <SDL_video.h>
 
-#ifndef JM_USE_GLES
 namespace jm::detail
 {
 	bool hasModernGL;
+	
+	float maxAnistropy;
 	
 	static std::string glVendorName;
 	
@@ -85,6 +88,11 @@ namespace jm::detail
 				hasModernGL = false;
 				break;
 			}
+		}
+		
+		if (SDL_GL_ExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+		{
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &maxAnistropy);
 		}
 		
 		if (debug && glDebugMessageCallback)

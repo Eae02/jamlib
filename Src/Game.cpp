@@ -87,6 +87,7 @@ namespace jm
 		delete detail::currentIS;
 		delete detail::previousIS;
 		Graphics2D::DestroyStatic();
+		detail::DestroyGlobalSamplers();
 	}
 	
 	void ButtonDownEvent(Button button, bool isRepeat)

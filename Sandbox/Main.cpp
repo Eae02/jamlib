@@ -6,6 +6,11 @@
 
 struct Game : jm::Game
 {
+	Game()
+	{
+		gfx.SetSampler(&jm::Pixel2DSampler());
+	}
+	
 	void RunFrame(float dt) override
 	{
 		if (jm::IsButtonDown(jm::Button::LeftArrow))
@@ -23,7 +28,7 @@ struct Game : jm::Game
 		
 		gfx.Begin();
 		
-		gfx.Draw(jm::GetAsset<jm::Texture2D>("Player.png"), glm::vec2(rx, 10), glm::vec4(1.0f), 2.0f);
+		gfx.Sprite(jm::GetAsset<jm::Texture2D>("Player.png"), glm::vec2(std::round(rx), 10), glm::vec4(1.0f), 2.0f);
 		
 		gfx.End();
 	}

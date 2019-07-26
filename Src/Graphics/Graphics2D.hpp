@@ -45,30 +45,31 @@ namespace jm
 		 * @param rotation Angle of rotation, specified clockwise in radians.
 		 * @param origin Sprite origin in texture space.
 		 */
-		void Draw(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color, float scale = 1,
+		void Sprite(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color, float scale = 1,
 			SpriteFlags flags = SpriteFlags::None, float rotation = 0, const glm::vec2& origin = { })
 		{
-			Draw(texture, position, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()), scale,
-				flags, rotation, origin);
+			Sprite(texture, position, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()), scale,
+			       flags, rotation, origin);
 		}
 		
-		void Draw(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color,
+		void Sprite(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color,
 			const Rectangle& texRectangle, float scale = 1, SpriteFlags flipFlags = SpriteFlags::None,
 			float rotation = 0, glm::vec2 origin = { });
 		
-		void Draw(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color, SpriteFlags flipFlags)
+		void Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color, SpriteFlags flipFlags)
 		{
-			Draw(texture, rectangle, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()), flipFlags);
+			Sprite(texture, rectangle, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()),
+			       flipFlags);
 		}
 		
-		void Draw(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
+		void Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
 			const Rectangle& texRectangle, SpriteFlags flipFlags);
 		
-		void DrawRectBorder(const Rectangle& rectangle, const glm::vec4& color, float width = 1);
+		void BorderRect(const Rectangle& rectangle, const glm::vec4& color, float width = 1);
 		
-		void DrawRect(const Rectangle& rectangle, const glm::vec4& color);
+		void FilledRect(const Rectangle& rectangle, const glm::vec4& color);
 		
-		void DrawLine(const glm::vec2& begin, const glm::vec2& end, const glm::vec4& color, float width = 1);
+		void Line(const glm::vec2& begin, const glm::vec2& end, const glm::vec4& color, float width = 1);
 		
 		void End()
 		{
@@ -82,6 +83,11 @@ namespace jm
 		bool Empty() const
 		{
 			return m_batches.empty();
+		}
+		
+		void SetSampler(const Sampler* sampler)
+		{
+			m_sampler = sampler;
 		}
 		
 		static void InitStatic();
@@ -124,12 +130,15 @@ namespace jm
 		struct Batch
 		{
 			const Texture2D* texture;
+			const Sampler* sampler;
 			bool redToAlpha;
 			uint32_t firstIndex;
 			uint32_t numIndices;
 			bool enableScissor;
 			ScissorRectangle scissor;
 		};
+		
+		const Sampler* m_sampler = nullptr;
 		
 		std::vector<Batch> m_batches;
 		

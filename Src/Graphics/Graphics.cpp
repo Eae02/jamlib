@@ -166,4 +166,70 @@ namespace jm
 			glDisable(GL_SCISSOR_TEST);
 		}
 	}
+	
+	const BlendState AlphaBlend = { BlendFunction::Add, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha };
+	
+	inline static GLenum TranslateBlendFunction(BlendFunction blendFunction)
+	{
+		switch (blendFunction)
+		{
+		case BlendFunction::Add: return GL_FUNC_ADD;
+		case BlendFunction::Subtract: return GL_FUNC_SUBTRACT;
+		case BlendFunction::ReverseSubtract: return GL_FUNC_REVERSE_SUBTRACT;
+		case BlendFunction::Min: return GL_MIN;
+		case BlendFunction::Max: return GL_MAX;
+		}
+		
+		std::abort();
+	}
+	
+	inline static GLenum TranslateBlendFactor(BlendFactor blendFactor)
+	{
+		switch (blendFactor)
+		{
+		case BlendFactor::Zero: return GL_ZERO;
+		case BlendFactor::One: return GL_ONE;
+		case BlendFactor::SrcColor: return GL_SRC_COLOR;
+		case BlendFactor::OneMinusSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+		case BlendFactor::DstColor: return GL_DST_COLOR;
+		case BlendFactor::OneMinusDstColor: return GL_ONE_MINUS_DST_COLOR;
+		case BlendFactor::SrcAlpha: return GL_SRC_ALPHA;
+		case BlendFactor::OneMinusSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+		case BlendFactor::DstAlpha: return GL_DST_ALPHA;
+		case BlendFactor::OneMinusDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
+		case BlendFactor::ConstantColor: return GL_CONSTANT_COLOR;
+		case BlendFactor::OneMinusConstantColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+		case BlendFactor::ConstantAlpha: return GL_CONSTANT_ALPHA;
+		case BlendFactor::OneMinusConstantAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+		}
+		
+		std::abort();
+	}
+	
+	static bool isBlendEnabled = false;
+	
+	void SetBlendState(const BlendState* blendState)
+	{
+		if (blendState == nullptr)
+		{
+			if (isBlendEnabled)
+				glDisable(GL_BLEND);
+			return;
+		}
+		
+		if (!isBlendEnabled)
+			glEnable(GL_BLEND);
+		
+		glBlendEquationSeparate(
+			TranslateBlendFunction(blendState->functionRGB),
+			TranslateBlendFunction(blendState->functionA)
+		);
+		
+		glBlendFuncSeparate(
+			TranslateBlendFactor(blendState->srcFactorRGB),
+			TranslateBlendFactor(blendState->dstFactorRGB),
+			TranslateBlendFactor(blendState->srcFactorA),
+			TranslateBlendFactor(blendState->dstFactorA)
+		);
+	}
 }

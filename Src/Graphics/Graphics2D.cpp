@@ -96,7 +96,7 @@ void main()
 	{
 		bool needsNewBatch = true;
 		if (!m_batches.empty() && m_batches.back().texture == &texture &&
-			m_batches.back().redToAlpha == redToAlpha)
+			m_batches.back().redToAlpha == redToAlpha && m_batches.back().sampler == m_sampler)
 		{
 			if (!m_batches.back().enableScissor && m_scissorStack.empty())
 			{
@@ -114,6 +114,7 @@ void main()
 			Batch& batch = m_batches.emplace_back();
 			batch.redToAlpha = redToAlpha;
 			batch.texture = &texture;
+			batch.sampler = m_sampler;
 			batch.firstIndex = static_cast<uint32_t>(m_indices.size());
 			batch.numIndices = 0;
 			if ((batch.enableScissor = !m_scissorStack.empty()))
@@ -136,23 +137,23 @@ void main()
 		m_batches.back().numIndices += 6;
 	}
 	
-	void Graphics2D::Draw(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color,
-		const Rectangle& texRectangle, float scale, SpriteFlags flags, float rotation, glm::vec2 origin)
+	void Graphics2D::Sprite(const Texture2D& texture, const glm::vec2& position, const glm::vec4& color,
+		const Rectangle& texRectangle, float scale, SpriteFlags flipFlags, float rotation, glm::vec2 origin)
 	{
-		InitBatch(texture, (uint32_t)flags & (uint32_t)SpriteFlags::RedToAlpha);
+		InitBatch(texture, (uint32_t)flipFlags & (uint32_t)SpriteFlags::RedToAlpha);
 		
 		AddQuadIndices();
 		
 		float uOffsets[] = { 0, texRectangle.w };
 		float vOffsets[] = { 0, texRectangle.h };
 		
-		if ((uint32_t)flags & (uint32_t)SpriteFlags::FlipX)
+		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipX)
 		{
 			std::swap(uOffsets[0], uOffsets[1]);
 			origin.x = texRectangle.w - origin.x;
 		}
 		
-		if ((uint32_t)flags & (uint32_t)SpriteFlags::FlipY)
+		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipY)
 		{
 			std::swap(vOffsets[0], vOffsets[1]);
 			origin.y = texRectangle.h - origin.y;
@@ -178,19 +179,19 @@ void main()
 		}
 	}
 	
-	void Graphics2D::Draw(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
-		const Rectangle& texRectangle, SpriteFlags flags)
+	void Graphics2D::Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
+		const Rectangle& texRectangle, SpriteFlags flipFlags)
 	{
-		InitBatch(texture, (uint32_t)flags & (uint32_t)SpriteFlags::RedToAlpha);
+		InitBatch(texture, (uint32_t)flipFlags & (uint32_t)SpriteFlags::RedToAlpha);
 		
 		AddQuadIndices();
 		
 		float uOffsets[] = { 0, texRectangle.w };
 		float vOffsets[] = { texRectangle.h, 0 };
 		
-		if ((uint32_t)flags & (uint32_t)SpriteFlags::FlipX)
+		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipX)
 			std::swap(uOffsets[0], uOffsets[1]);
-		if ((uint32_t)flags & (uint32_t)SpriteFlags::FlipY)
+		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipY)
 			std::swap(vOffsets[0], vOffsets[1]);
 		
 		for (int x = 0; x < 2; x++)
@@ -205,15 +206,15 @@ void main()
 		}
 	}
 	
-	void Graphics2D::DrawRectBorder(const Rectangle& rectangle, const glm::vec4& color, float width)
+	void Graphics2D::BorderRect(const Rectangle& rectangle, const glm::vec4& color, float width)
 	{
-		DrawLine({ rectangle.x, rectangle.y }, { rectangle.MaxX(), rectangle.y }, color, width);
-		DrawLine({ rectangle.MaxX(), rectangle.y }, { rectangle.x + rectangle.w, rectangle.MaxY() }, color, width);
-		DrawLine({ rectangle.MaxX(), rectangle.MaxY() }, { rectangle.x, rectangle.MaxY() }, color, width);
-		DrawLine({ rectangle.x, rectangle.MaxY() }, { rectangle.x, rectangle.y }, color, width);
+		Line({ rectangle.x, rectangle.y }, { rectangle.MaxX(), rectangle.y }, color, width);
+		Line({ rectangle.MaxX(), rectangle.y }, { rectangle.x + rectangle.w, rectangle.MaxY() }, color, width);
+		Line({ rectangle.MaxX(), rectangle.MaxY() }, { rectangle.x, rectangle.MaxY() }, color, width);
+		Line({ rectangle.x, rectangle.MaxY() }, { rectangle.x, rectangle.y }, color, width);
 	}
 	
-	void Graphics2D::DrawLine(const glm::vec2& begin, const glm::vec2& end, const glm::vec4& color, float width)
+	void Graphics2D::Line(const glm::vec2& begin, const glm::vec2& end, const glm::vec4& color, float width)
 	{
 		InitBatch(*whitePixelTexture, false);
 		
@@ -232,7 +233,7 @@ void main()
 		}
 	}
 	
-	void Graphics2D::DrawRect(const Rectangle& rectangle, const glm::vec4& color)
+	void Graphics2D::FilledRect(const Rectangle& rectangle, const glm::vec4& color)
 	{
 		InitBatch(*whitePixelTexture, false);
 		
@@ -268,6 +269,8 @@ void main()
 	{
 		if (m_batches.empty())
 			return;
+		
+		SetBlendState(&AlphaBlend);
 		
 		shader->Bind();
 		m_vertexLayout.Bind();
@@ -317,8 +320,12 @@ void main()
 			
 			batch.texture->Bind(0);
 			
+			BindSampler(batch.sampler, 0);
+			
 			DrawIndexed(DrawTopology::TriangleList, IndexType::UInt32, batch.firstIndex * sizeof(uint32_t), batch.numIndices);
 		}
+		
+		SetBlendState(nullptr);
 	}
 	
 	void Graphics2D::End(int screenWidth, int screenHeight)

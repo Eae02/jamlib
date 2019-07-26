@@ -1,5 +1,6 @@
 #include "Texture.hpp"
 #include "OpenGL.hpp"
+#include "Sampler.hpp"
 #include "../Asset.hpp"
 
 #include <stb_image.h>
@@ -7,70 +8,6 @@
 
 namespace jm
 {
-	TextureMinFilter MakeTextureMinFilter(Filter filter, std::optional<Filter> mipFilter)
-	{
-		switch (filter)
-		{
-		case Filter::Linear:
-			if (!mipFilter.has_value())
-				return TextureMinFilter::Linear;
-			if (mipFilter.value() == Filter::Linear)
-				return TextureMinFilter::LinearMipmapLinear;
-			return TextureMinFilter::LinearMipmapNearest;
-			
-		case Filter::Nearest:
-			if (!mipFilter.has_value())
-				return TextureMinFilter::Nearest;
-			if (mipFilter.value() == Filter::Linear)
-				return TextureMinFilter::NearestMipmapLinear;
-			return TextureMinFilter::NearestMipmapNearest;
-		}
-		
-		std::terminate();
-	}
-	
-	static inline GLenum TranslateTextureWrapMode(TextureWrapMode wrapMode)
-	{
-		switch (wrapMode)
-		{
-		case TextureWrapMode::ClampToEdge: return GL_CLAMP_TO_EDGE;
-		case TextureWrapMode::MirroredRepeat: return GL_MIRRORED_REPEAT;
-		case TextureWrapMode::Repeat: return GL_REPEAT;
-		case TextureWrapMode::ClampToBorder: return GL_CLAMP_TO_BORDER;
-		}
-		std::terminate();
-	}
-	
-	static inline GLenum TranslateTextureMinFilter(TextureMinFilter minFilter)
-	{
-		switch (minFilter)
-		{
-		case TextureMinFilter::Nearest: return GL_NEAREST;
-		case TextureMinFilter::Linear: return GL_LINEAR;
-		case TextureMinFilter::NearestMipmapNearest: return GL_NEAREST_MIPMAP_NEAREST;
-		case TextureMinFilter::LinearMipmapNearest: return GL_LINEAR_MIPMAP_NEAREST;
-		case TextureMinFilter::NearestMipmapLinear: return GL_NEAREST_MIPMAP_LINEAR;
-		case TextureMinFilter::LinearMipmapLinear: return GL_LINEAR_MIPMAP_LINEAR;
-		}
-		
-		std::terminate();
-	}
-	
-	static inline GLenum TranslateSwizzleMode(SwizzleMode swizzleMode)
-	{
-		switch (swizzleMode)
-		{
-		case SwizzleMode::R: return GL_RED;
-		case SwizzleMode::G: return GL_GREEN;
-		case SwizzleMode::B: return GL_BLUE;
-		case SwizzleMode::A: return GL_ALPHA;
-		case SwizzleMode::Zero: return GL_ZERO;
-		case SwizzleMode::One: return GL_ONE;
-		}
-		
-		std::terminate();
-	}
-	
 	static uint32_t nextTextureId = 1;
 	static int currentTextureUnit = 0;
 	static uint32_t currentBoundTexture[32];
@@ -89,7 +26,7 @@ namespace jm
 	
 	void Texture::SetMinFilter(TextureMinFilter minFilter)
 	{
-		SetParameterI(GL_TEXTURE_MIN_FILTER, TranslateTextureMinFilter(minFilter));
+		SetParameterI(GL_TEXTURE_MIN_FILTER, detail::TranslateTextureMinFilter(minFilter));
 	}
 	
 	void Texture::SetMagFilter(TextureMagFilter magFilter)
@@ -109,42 +46,22 @@ namespace jm
 	
 	void Texture::SetMaxAnistropy(float maxAnistropy)
 	{
-		//SetParameterF(GL_TEXTURE_MAX_ANISOTROPY_EXT, maxAnistropy);
+		SetParameterF(GL_TEXTURE_MAX_ANISOTROPY, maxAnistropy);
 	}
 	
 	void Texture::SetWrapU(TextureWrapMode wrapMode)
 	{
-		SetParameterI(GL_TEXTURE_WRAP_S, TranslateTextureWrapMode(wrapMode));
+		SetParameterI(GL_TEXTURE_WRAP_S, detail::TranslateTextureWrapMode(wrapMode));
 	}
 	
 	void Texture::SetWrapV(TextureWrapMode wrapMode)
 	{
-		SetParameterI(GL_TEXTURE_WRAP_T, TranslateTextureWrapMode(wrapMode));
+		SetParameterI(GL_TEXTURE_WRAP_T, detail::TranslateTextureWrapMode(wrapMode));
 	}
 	
 	void Texture::SetWrapW(TextureWrapMode wrapMode)
 	{
-		SetParameterI(GL_TEXTURE_WRAP_R, TranslateTextureWrapMode(wrapMode));
-	}
-	
-	void Texture::SetSwizzleR(SwizzleMode mode)
-	{
-		SetParameterI(GL_TEXTURE_SWIZZLE_R, TranslateSwizzleMode(mode));
-	}
-	
-	void Texture::SetSwizzleG(SwizzleMode mode)
-	{
-		SetParameterI(GL_TEXTURE_SWIZZLE_G, TranslateSwizzleMode(mode));
-	}
-	
-	void Texture::SetSwizzleB(SwizzleMode mode)
-	{
-		SetParameterI(GL_TEXTURE_SWIZZLE_B, TranslateSwizzleMode(mode));
-	}
-	
-	void Texture::SetSwizzleA(SwizzleMode mode)
-	{
-		SetParameterI(GL_TEXTURE_SWIZZLE_A, TranslateSwizzleMode(mode));
+		SetParameterI(GL_TEXTURE_WRAP_R, detail::TranslateTextureWrapMode(wrapMode));
 	}
 	
 	void Texture::SetParameterI(uint32_t parameterName, int value)

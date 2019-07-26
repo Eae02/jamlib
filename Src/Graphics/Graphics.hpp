@@ -62,6 +62,77 @@ namespace jm
 	
 	JAPI void SetRenderTarget(Texture2D* color, Texture2D* depth = nullptr);
 	
+	enum class BlendFunction
+	{
+		Add,
+		Subtract,
+		ReverseSubtract,
+		Min,
+		Max
+	};
+	
+	enum class BlendFactor
+	{
+		Zero,
+		One,
+		SrcColor,
+		OneMinusSrcColor,
+		DstColor,
+		OneMinusDstColor,
+		SrcAlpha,
+		OneMinusSrcAlpha,
+		DstAlpha,
+		OneMinusDstAlpha,
+		ConstantColor,
+		OneMinusConstantColor,
+		ConstantAlpha,
+		OneMinusConstantAlpha
+	};
+	
+	struct BlendState
+	{
+		BlendFunction functionRGB;
+		BlendFunction functionA;
+		BlendFactor srcFactorRGB;
+		BlendFactor srcFactorA;
+		BlendFactor dstFactorRGB;
+		BlendFactor dstFactorA;
+		
+		inline BlendState() noexcept
+			: BlendState(BlendFunction::Add, BlendFactor::One, BlendFactor::Zero) { }
+		
+		inline BlendState(BlendFunction _function, BlendFactor _srcFactor, BlendFactor _dstFactor) noexcept
+			: functionRGB(_function), functionA(_function),
+			  srcFactorRGB(_srcFactor), srcFactorA(_srcFactor),
+			  dstFactorRGB(_dstFactor), dstFactorA(_dstFactor) { }
+		
+		inline BlendState(BlendFunction _functionRGB, BlendFunction _functionA,
+		                  BlendFactor _srcFactorRGB, BlendFactor _srcFactorA,
+		                  BlendFactor _dstFactorRGB, BlendFactor _dstFactorA) noexcept
+			: functionRGB(_functionRGB), functionA(_functionA),
+			  srcFactorRGB(_srcFactorRGB), srcFactorA(_srcFactorA),
+			  dstFactorRGB(_dstFactorRGB), dstFactorA(_dstFactorA) { }
+		
+		inline bool operator==(const BlendState& other) const noexcept
+		{
+			return functionRGB == other.functionRGB &&
+			       functionA == other.functionA &&
+			       srcFactorRGB == other.srcFactorRGB &&
+			       srcFactorA == other.srcFactorA &&
+			       dstFactorRGB == other.dstFactorRGB &&
+			       dstFactorA == other.dstFactorA;
+		}
+		
+		inline bool operator!=(const BlendState& other) const noexcept
+		{
+			return !operator==(other);
+		}
+	};
+	
+	JAPI extern const BlendState AlphaBlend;
+	
+	JAPI void SetBlendState(const BlendState* blendState);
+	
 	JAPI glm::vec3 ParseHexColor(uint32_t hex);
 	
 	/**

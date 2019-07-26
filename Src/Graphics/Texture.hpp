@@ -2,6 +2,7 @@
 
 #include "GLHandle.hpp"
 #include "Format.hpp"
+#include "Sampler.hpp"
 #include "../API.hpp"
 
 #include <optional>
@@ -12,50 +13,6 @@
 
 namespace jm
 {
-	enum class SwizzleMode
-	{
-		R,
-		G,
-		B,
-		A,
-		Zero,
-		One
-	};
-	
-	enum class Filter
-	{
-		Linear,
-		Nearest
-	};
-	
-	enum class TextureMinFilter
-	{
-		Nearest,
-		Linear,
-		NearestMipmapNearest,
-		LinearMipmapNearest,
-		NearestMipmapLinear,
-		LinearMipmapLinear
-	};
-	
-	using TextureMagFilter = Filter;
-	
-	JAPI TextureMinFilter MakeTextureMinFilter(Filter filter, std::optional<Filter> mipFilter);
-	
-	enum class TextureWrapMode
-	{
-		ClampToEdge,
-		MirroredRepeat,
-		Repeat,
-		ClampToBorder
-	};
-	
-	namespace detail
-	{
-		uint32_t TranslateTextureWrapMode(TextureWrapMode wrapMode);
-		uint32_t TranslateTextureMinFilter(TextureMinFilter minFilter);
-	}
-	
 	class JAPI Texture
 	{
 	public:
@@ -70,11 +27,6 @@ namespace jm
 		void SetWrapU(TextureWrapMode wrapMode);
 		void SetWrapV(TextureWrapMode wrapMode);
 		void SetWrapW(TextureWrapMode wrapMode);
-		
-		void SetSwizzleR(SwizzleMode mode);
-		void SetSwizzleG(SwizzleMode mode);
-		void SetSwizzleB(SwizzleMode mode);
-		void SetSwizzleA(SwizzleMode mode);
 		
 		void GenerateMipmaps();
 		
