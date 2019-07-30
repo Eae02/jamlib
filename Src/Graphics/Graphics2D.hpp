@@ -56,14 +56,14 @@ namespace jm
 			const Rectangle& texRectangle, float scale = 1, SpriteFlags flipFlags = SpriteFlags::None,
 			float rotation = 0, glm::vec2 origin = { });
 		
-		void Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color, SpriteFlags flipFlags)
+		void Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
+			SpriteFlags flags = SpriteFlags::None)
 		{
-			Sprite(texture, rectangle, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()),
-			       flipFlags);
+			Sprite(texture, rectangle, color, Rectangle(0, 0, (float)texture.Width(), (float)texture.Height()), flags);
 		}
 		
 		void Sprite(const Texture2D& texture, const Rectangle& rectangle, const glm::vec4& color,
-			const Rectangle& texRectangle, SpriteFlags flipFlags);
+			const Rectangle& texRectangle, SpriteFlags flags = SpriteFlags::None);
 		
 		void BorderRect(const Rectangle& rectangle, const glm::vec4& color, float width = 1);
 		

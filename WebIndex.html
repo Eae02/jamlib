@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		
+		<style>
+			body {
+				overflow: hidden;
+				padding: 0;
+				margin: 0;
+				font-family: sans-serif;
+			}
+			
+			#canvas {
+				width: 100vw;
+				height: 100vh;
+			}
+			
+			#infoWrap {
+				position: absolute;
+				width: 100vw;
+				height: 100vh;
+				text-align: center;
+				line-height: 100vh;
+				background-color: #0a394a;
+			}
+			
+			#infoWrap.hidden {
+				display: none;
+			}
+			
+			#infoText {
+				font-size: 4vh;
+				vertical-align: middle;
+				display: inline-block;
+				line-height: normal;
+				color: white;
+				text-shadow: 0 0 0.2em black;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="infoWrap">
+			<span id="infoText">Loading...</span>
+		</div>
+		<canvas id="canvas"></canvas>
+		<script type="text/javascript" src="game.js"></script>
+		<script>
+			Module.canvas = document.getElementById("canvas");
+			Module.preRun = function() {
+				FS.createPreloadedFile(".", "assets.zip", "assets.zip", true, false);
+			};
+			Module.onRuntimeInitialized = function() {
+				document.getElementById("infoWrap").classList.add("hidden");
+				Module.cwrap("WebMain", "", [])();
+			};
+			Module.onAbort = function() {
+				document.getElementById("infoWrap").classList.remove("hidden");
+				document.getElementById("infoText").innerText = "Error";
+			};
+		</script>
+	</body>
+</html>

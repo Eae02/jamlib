@@ -1,8 +1,4 @@
-#include "Asset.hpp"
-#include "Game.hpp"
-#include "Input.hpp"
-#include "Graphics/Graphics.hpp"
-#include "Graphics/Graphics2D.hpp"
+#include "JamLib.hpp"
 
 struct Game : jm::Game
 {

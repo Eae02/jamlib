@@ -16,3 +16,6 @@
 [submodule "Deps/glm"]
 	path = Deps/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "Deps/cmake-pch"]
+	path = Deps/cmake-pch
+	url = https://github.com/nanoant/CMakePCHCompiler.git
