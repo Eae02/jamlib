@@ -9,11 +9,7 @@ in vec2 vTexCoord;
 
 out vec4 color_out;
 
-uniform KernelUB
-{
-	float kernel[BLUR_RADIUS + 1];
-};
-
+uniform float uKernel[BLUR_RADIUS + 1];
 uniform vec2 uBlurVector;
 
 uniform sampler2D inputTex;
@@ -23,13 +19,23 @@ void main()
 	color_out = vec4(0.0);
 	for (int i = -BLUR_RADIUS; i <= BLUR_RADIUS; i++)
 	{
-		color_out += texture(inputTex, vTexCoord + uBlurVector * i) * kernel[abs(i)];
+		color_out += texture(inputTex, vTexCoord + uBlurVector * float(i)) * uKernel[abs(i)];
 	}
 }
 )";
 	
-	inline static Buffer CreateKernelBuffer(int blurRadius, float sigmaFactor)
+	GaussianBlur::GaussianBlur(int blurRadius, float sigmaFactor)
 	{
+		std::ostringstream fsStream;
+		fsStream << "#define BLUR_RADIUS " << blurRadius << FS_SOURCE;
+		std::string fsCode = fsStream.str();
+		
+		m_shader.AddVertexShader(FullscreenQuadVS);
+		m_shader.AddFragmentShader(fsCode);
+		m_shader.Link();
+		
+		m_shader.SetUniformI(m_shader.GetUniformLocation("inputTex"), 0);
+		
 		float sigma = sigmaFactor * blurRadius;
 		float s = -0.5f / (sigma * sigma);
 		float sum = 0.0f;
@@ -49,22 +55,8 @@ void main()
 			v /= sum;
 		}
 		
-		return Buffer(BufferFlags::UniformBuffer, sizeof(float) * kernel.size(), kernel.data());
-	}
-	
-	GaussianBlur::GaussianBlur(int blurRadius, float sigmaFactor)
-		: m_blurRadius(blurRadius),
-		  m_kernelBuffer(CreateKernelBuffer(blurRadius, sigmaFactor))
-	{
-		std::ostringstream fsStream;
-		fsStream << "#define BLUR_RADIUS " << blurRadius << FS_SOURCE;
-		std::string fsCode = fsStream.str();
+		m_shader.SetUniformF(m_shader.GetUniformLocation("uKernel"), 1, kernel.size(), kernel.data());
 		
-		m_shader.AddVertexShader(FullscreenQuadVS);
-		m_shader.AddFragmentShader(fsCode);
-		m_shader.Link();
-		m_shader.SetUniformBlockBinding("KernelUB", 0);
-		m_shader.SetUniformI(m_shader.GetUniformLocation("inputTex"), 0);
 		m_blurVectorUniformLocation = m_shader.GetUniformLocation("uBlurVector");
 	}
 	
@@ -88,7 +80,6 @@ void main()
 		
 		m_shader.Bind();
 		m_vertexLayout.Bind();
-		m_kernelBuffer.BindUBO(0);
 		
 		SetRenderTarget(&*m_tempTexture);
 		input.Bind(0);

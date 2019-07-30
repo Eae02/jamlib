@@ -3,7 +3,6 @@
 #include "../API.hpp"
 #include "Graphics.hpp"
 #include "Texture.hpp"
-#include "Buffer.hpp"
 #include "VertexLayout.hpp"
 #include "Shader.hpp"
 
@@ -21,9 +20,6 @@ namespace jm
 		void RenderBlur(const Texture2D& input, Texture2D* output);
 		
 	private:
-		int m_blurRadius;
-		Buffer m_kernelBuffer;
-		
 		Shader m_shader;
 		int m_blurVectorUniformLocation;
 		

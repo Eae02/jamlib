@@ -1,2 +1,2 @@
 #!/bin/bash
-rm .build/Debug/CMakeFiles/game.pch.dir/PCH.hpp.gch
+rm .build/*/CMakeFiles/game.pch.dir/PCH.hpp.gch
