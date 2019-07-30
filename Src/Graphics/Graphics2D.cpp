@@ -50,7 +50,6 @@ void main()
 	static Shader* shader;
 	static int transformUniformLocation;
 	static int redToAlphaUniformLocation;
-	static bool textureBindingSet = false;
 	
 	static Texture2D* whitePixelTexture;
 	

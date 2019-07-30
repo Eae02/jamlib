@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iomanip>
 #include <stack>
+#include <SDL_messagebox.h>
 
 namespace jm
 {
@@ -107,5 +108,84 @@ namespace jm
 		for (size_t i = 1; i < parts.size(); i++)
 			outStream << "/" << parts[i];
 		return outStream.str();
+	}
+	
+	std::string_view BaseName(std::string_view path)
+	{
+		const size_t lastSlash = path.rfind('/');
+		if (lastSlash == std::string_view::npos)
+			return path;
+		return path.substr(lastSlash + 1);
+	}
+	
+	std::string_view PathWithoutExtension(std::string_view fileName)
+	{
+		const size_t lastDot = fileName.rfind('.');
+		if (lastDot == std::string_view::npos)
+			return fileName;
+		return fileName.substr(0, lastDot);
+	}
+	
+	std::string_view PathExtension(std::string_view fileName)
+	{
+		const size_t lastDot = fileName.rfind('.');
+		if (lastDot == std::string_view::npos)
+			return { };
+		return fileName.substr(lastDot + 1);
+	}
+	
+	std::string_view ParentPath(std::string_view path, bool includeSlash)
+	{
+		const size_t lastSlash = path.rfind('/');
+		if (lastSlash == std::string_view::npos)
+			return { };
+		return path.substr(0, lastSlash + (includeSlash ? 1 : 0));
+	}
+	
+	extern bool debugMode;
+	
+	bool DebugMode()
+	{
+		return debugMode;
+	}
+	
+	void Panic(std::string message)
+	{
+		if (debugMode)
+		{
+			std::cerr << "Fatal error: " << message << "\n";
+			std::abort();
+		}
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", message.c_str(), nullptr);
+		std::exit(1);
+	}
+	
+	static const char* Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	
+	std::vector<char> Base64Decode(std::string_view in)
+	{
+		std::vector<char> out;
+		
+		std::vector<int> translate(256, -1);
+		for (int i = 0; i < 64; i++)
+		{
+			translate[Base64Chars[i]] = i;
+		}
+		
+		int val = 0;
+		int valb = -8;
+		for (char c : in)
+		{
+			if (translate[c] == -1)
+				break;
+			val = (val << 6) + translate[c];
+			valb += 6;
+			if (valb >= 0)
+			{
+				out.push_back(char((val >> valb) & 0xFF));
+				valb -= 8;
+			}
+		}
+		return out;
 	}
 }

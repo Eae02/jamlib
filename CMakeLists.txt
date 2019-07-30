@@ -11,7 +11,7 @@ else()
 	set(JAM_LIB_TYPE SHARED)
 endif()
 
-add_library(jam ${JAM_LIB_TYPE} ${SOURCE_FILES} Deps/opengl/src/gl3w.c Deps/miniz/miniz.c)
+add_library(jam ${JAM_LIB_TYPE} ${SOURCE_FILES} Deps/opengl/src/gl3w.c Deps/miniz/miniz.c Deps/tinyxml/tinyxml2.cpp)
 add_executable(sandbox Sandbox/Main.cpp)
 
 add_library(SDL2 STATIC IMPORTED)
@@ -68,7 +68,9 @@ target_include_directories(jam SYSTEM
 	PUBLIC
 		Deps/gsl/include
 		Deps/glm
+		Deps/pcg/include
 	PRIVATE
+		Deps/tinyxml
 		Deps/miniz
 		Deps/opengl/include
 		Deps/sdl2/include

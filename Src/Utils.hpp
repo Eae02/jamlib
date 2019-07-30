@@ -13,9 +13,9 @@
 
 #define JM_BIT_FIELD(T) \
 inline constexpr T operator|(T a, T b) noexcept \
-{ return static_cast<T>(static_cast<int>(a) | static_cast<int>(b)); }\
+{ return static_cast<T>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b)); }\
 inline constexpr T operator&(T a, T b) noexcept \
-{ return static_cast<T>(static_cast<int>(a) & static_cast<int>(b)); }\
+{ return static_cast<T>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b)); }\
 inline constexpr T& operator|=(T& a, T b) noexcept \
 { a = a | b; return a; }
 
@@ -171,5 +171,15 @@ namespace jm
 		return (int8_t)glm::clamp((int)(x * 127), -127, 127);
 	}
 	
+	JAPI bool DebugMode();
+	
+	JAPI void Panic(std::string message);
+	
 	JAPI std::string CanonicalPath(std::string_view path);
+	JAPI std::string_view BaseName(std::string_view path);
+	JAPI std::string_view PathWithoutExtension(std::string_view fileName);
+	JAPI std::string_view PathExtension(std::string_view fileName); //Does not include the dot before the extension!
+	JAPI std::string_view ParentPath(std::string_view path, bool includeSlash);
+	
+	JAPI std::vector<char> Base64Decode(std::string_view in);
 }

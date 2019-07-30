@@ -5,4 +5,5 @@ Bin/
 Deps/opengl/
 Deps/sdl2/
 Deps/miniz/
+Deps/tinyxml/
 CMake/*/JamTargets.cmake

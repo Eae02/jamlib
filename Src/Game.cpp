@@ -24,10 +24,16 @@ namespace jm
 	Button TranslateSDLMouseButton(int button);
 	void AddGameController(SDL_GameController* controller);
 	
+	void RegisterTiledAssetLoaders();
+	void CreateDefaultTileMapShader();
+	void DestroyDefaultTileMapShader();
+	
 	void InitSetUniform();
 	
 	extern int defaultRTWidth;
 	extern int defaultRTHeight;
+	
+	bool debugMode = false;
 	
 	void Init(int argc, char** argv)
 	{
@@ -37,11 +43,10 @@ namespace jm
 			std::exit(1);
 		}
 		
-		bool glDebug = false;
 		for (int i = 0; i < argc; i++)
 		{
 			if (std::strcmp(argv[i], "--dbg") == 0)
-				glDebug = true;
+				debugMode = true;
 		}
 		
 #ifdef __EMSCRIPTEN__
@@ -50,7 +55,7 @@ namespace jm
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
 		uint32_t glContextFlags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
-		if (glDebug)
+		if (debugMode)
 			glContextFlags |= SDL_GL_CONTEXT_DEBUG_FLAG;
 		
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -72,11 +77,13 @@ namespace jm
 			std::abort();
 		}
 		
-		detail::InitializeOpenGL(glDebug);
+		detail::InitializeOpenGL(debugMode);
 		
 		InitSetUniform();
 		Graphics2D::InitStatic();
+		CreateDefaultTileMapShader();
 		
+		RegisterTiledAssetLoaders();
 		Texture2D::RegisterAssetLoader();
 		
 		detail::LoadAssets();
@@ -88,6 +95,7 @@ namespace jm
 		delete detail::previousIS;
 		Graphics2D::DestroyStatic();
 		detail::DestroyGlobalSamplers();
+		DestroyDefaultTileMapShader();
 	}
 	
 	void ButtonDownEvent(Button button, bool isRepeat)

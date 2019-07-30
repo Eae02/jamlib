@@ -7,3 +7,6 @@
 #include "Asset.hpp"
 #include "Graphics/Graphics2D.hpp"
 #include "Graphics/GaussianBlur.hpp"
+#include "World/TileMap.hpp"
+#include "World/TileSet.hpp"
+#include "World/TMXTerrain.hpp"

@@ -1,5 +1,6 @@
 #include "Texture.hpp"
 #include "OpenGL.hpp"
+#include "Graphics.hpp"
 #include "Sampler.hpp"
 #include "../Asset.hpp"
 
@@ -178,6 +179,9 @@ namespace jm
 			texture.GenerateMipmaps();
 		}
 		
+		texture.SetMinFilter(TextureMinFilter::LinearMipmapLinear);
+		texture.SetMagFilter(Filter::Nearest);
+		
 		stbi_image_free(imageData);
 		
 		return texture;
@@ -187,7 +191,7 @@ namespace jm
 	{
 		stbi_set_flip_vertically_on_load(true);
 		
-		auto assetLoader = [] (gsl::span<const char> fileData) -> Texture2D
+		auto assetLoader = [] (gsl::span<const char> fileData, const std::string& name) -> Texture2D
 		{
 			return Texture2D::Load(fileData, (LoadFlags)0);
 		};
@@ -196,5 +200,13 @@ namespace jm
 		jm::RegisterAssetLoader<Texture2D>("jpg", assetLoader);
 		jm::RegisterAssetLoader<Texture2D>("jpeg", assetLoader);
 		jm::RegisterAssetLoader<Texture2D>("tga", assetLoader);
+	}
+	
+	void UpdateFullscreenTexture(std::optional<Texture2D>& texture, Format format)
+	{
+		if (!texture.has_value() || (int)texture->Width() != DefaultRTWidth() || (int)texture->Height() != DefaultRTHeight())
+		{
+			texture = Texture2D(DefaultRTWidth(), DefaultRTHeight(), format, 1);
+		}
 	}
 }

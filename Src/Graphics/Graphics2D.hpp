@@ -76,6 +76,11 @@ namespace jm
 			End(CurrentRTWidth(), CurrentRTHeight());
 		}
 		
+		void End(const glm::mat3& matrix)
+		{
+			End(CurrentRTWidth(), CurrentRTHeight(), matrix);
+		}
+		
 		void End(int screenWidth, int screenHeight);
 		
 		void End(int screenWidth, int screenHeight, const glm::mat3& matrix);

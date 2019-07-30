@@ -3,9 +3,9 @@
 mkdir -p Deps/opengl
 python2 Deps/gl3w/gl3w_gen.py --root Deps/opengl > /dev/null
 
-#Downloads miniz
+#Downloads and extracts miniz
 if [[ -d "Deps/miniz" ]]; then
-	echo "Skipping download miniz since Deps/miniz already exists"
+	echo "Skipping download of miniz since Deps/miniz already exists"
 else
 	mkdir -p Deps/miniz
 	curl -L https://github.com/richgel999/miniz/releases/download/2.1.0/miniz-2.1.0.zip > Deps/miniz/miniz.zip
@@ -13,9 +13,19 @@ else
 	unzip -j Deps/miniz/miniz.zip miniz.h -d Deps/miniz
 fi
 
+#Downloads and extracts tinyxml
+if [[ -d "Deps/tinyxml" ]]; then
+	echo "Skipping download of tinyxml since Deps/tinyxml already exists"
+else
+	mkdir -p Deps/tinyxml
+	curl -L https://github.com/leethomason/tinyxml2/archive/7.0.1.zip > Deps/tinyxml/tinyxml.zip
+	unzip -j Deps/tinyxml/tinyxml.zip */tinyxml2.cpp -d Deps/tinyxml
+	unzip -j Deps/tinyxml/tinyxml.zip */tinyxml2.h -d Deps/tinyxml
+fi
+
 ##Downloads and extracts SDL2
 if [[ -d "Deps/sdl2" ]]; then
-	echo "Skipping download sdl2 since Deps/sdl2 already exists"
+	echo "Skipping download of sdl2 since Deps/sdl2 already exists"
 else
 	mkdir -p Deps/sdl2
 	curl https://www.libsdl.org/release/SDL2-2.0.9.tar.gz -sS | tar -C Deps/sdl2 -xzf - --strip 1

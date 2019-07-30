@@ -19,7 +19,7 @@ namespace jm
 		struct AssetLoader
 		{
 			std::string extension;
-			std::function<void(gsl::span<const char> data, void* asset)> loadCallback;
+			std::function<void(gsl::span<const char> data, const std::string& name, void* asset)> loadCallback;
 			std::type_index typeIndex;
 			size_t typeSize;
 			
@@ -38,12 +38,12 @@ namespace jm
 	}
 	
 	template <typename T>
-	inline void RegisterAssetLoader(std::string extension, std::function<T(gsl::span<const char>)> loader)
+	inline void RegisterAssetLoader(std::string extension, std::function<T(gsl::span<const char>, const std::string&)> loader)
 	{
 		auto& assetLoader = detail::assetLoaders.emplace_back(std::move(extension), std::type_index(typeid(T)), sizeof(T));
-		assetLoader.loadCallback = [loader=std::move(loader)] (gsl::span<const char> data, void* asset)
+		assetLoader.loadCallback = [loader=std::move(loader)] (gsl::span<const char> data, const std::string& name, void* asset)
 		{
-			new (asset) T(loader(data));
+			new (asset) T(loader(data, name));
 		};
 	}
 	

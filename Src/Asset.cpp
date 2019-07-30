@@ -49,7 +49,7 @@ namespace jm
 		int64_t loader = FindAssetLoader(name);
 		if (loader == -1)
 		{
-			std::cerr << "No asset loader found for '" << name << "'.\n";
+			std::cout << "Warning: No asset loader found for '" << name << "'." << std::endl;
 			return;
 		}
 		
@@ -68,7 +68,7 @@ namespace jm
 		
 		std::vector<char> data = asset.readCallback();
 		
-		detail::assetLoaders[asset.loaderIndex].loadCallback(data, asset.assetMemory);
+		detail::assetLoaders[asset.loaderIndex].loadCallback(data, asset.name, asset.assetMemory);
 		
 		asset.readCallback = nullptr;
 		asset.loaded = true;
@@ -86,7 +86,7 @@ namespace jm
 			return a.name < b.name;
 		});
 		
-		std::vector<char> assetMemoryOffset(assets.size());
+		std::vector<size_t> assetMemoryOffset(assets.size());
 		size_t nextAssetMemoryOffset = 0;
 		for (size_t i = 0; i < assets.size(); i++)
 		{
@@ -112,14 +112,12 @@ namespace jm
 		auto it = std::lower_bound(assets.begin(), assets.end(), name);
 		if (it == assets.end() || it->name != name)
 		{
-			std::cerr << "Asset not found: '" << name << "'.\n";
-			std::abort();
+			Panic(Concat({ "Asset not found: '", name, "'." }));
 		}
 		LoadAsset(*it);
 		if (assetLoaders[it->loaderIndex].typeIndex != type)
 		{
-			std::cerr << "Attempted to get asset '" << name << "' as an incorrect type.\n";
-			std::abort();
+			Panic(Concat({ "Attempted to get asset '", name, "' as an incorrect type." }));
 		}
 		return it->assetMemory;
 	}

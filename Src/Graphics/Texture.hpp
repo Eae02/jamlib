@@ -100,4 +100,6 @@ namespace jm
 		uint32_t m_width;
 		uint32_t m_height;
 	};
+	
+	JAPI void UpdateFullscreenTexture(std::optional<Texture2D>& texture, Format format);
 }
