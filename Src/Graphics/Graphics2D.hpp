@@ -151,4 +151,11 @@ namespace jm
 		
 		VertexLayout m_vertexLayout;
 	};
+	
+	JAPI glm::mat3 MakeViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation, int screenWidth, int screenHeight);
+	
+	inline glm::mat3 MakeViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation)
+	{
+		return MakeViewMatrix2D(centerWorld, zoom, rotation, CurrentRTWidth(), CurrentRTHeight());
+	}
 }

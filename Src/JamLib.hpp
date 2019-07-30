@@ -6,3 +6,4 @@
 #include "Utils.hpp"
 #include "Asset.hpp"
 #include "Graphics/Graphics2D.hpp"
+#include "Graphics/GaussianBlur.hpp"

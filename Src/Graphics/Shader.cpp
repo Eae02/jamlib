@@ -7,6 +7,24 @@
 
 namespace jm
 {
+	const char* FullscreenQuadVS = R"(
+const vec2 positions[] = vec2[]
+(
+	vec2(-1, -1),
+	vec2(-1,  3),
+	vec2( 3, -1)
+);
+
+out vec2 vTexCoord;
+
+void main()
+{
+	gl_Position = vec4(positions[gl_VertexID], 0, 1);
+	vTexCoord = gl_Position.xy * 0.5 + 0.5;
+}
+
+)";
+	
 	static uint32_t nextUniqueID = 1;
 	static uint32_t currentShader = 0;
 	
@@ -97,6 +115,12 @@ namespace jm
 		{
 			glUseProgram(m_program.Get());
 			currentShader = m_uniqueID;
+			
+#ifdef __EMSCRIPTEN__
+			for (const auto& callback : m_setUniformCallbacks)
+				callback();
+			m_setUniformCallbacks.clear();
+#endif
 		}
 	}
 	
@@ -109,6 +133,7 @@ namespace jm
 			glUniformBlockBinding(m_program.Get(), index, binding);
 	}
 	
+#ifdef __EMSCRIPTEN__
 	static PFNGLUNIFORM1FVPROC setUniformFProc[5];
 	static PFNGLUNIFORM1IVPROC setUniformIProc[5];
 	static PFNGLUNIFORM1UIVPROC setUniformUProc[5];
@@ -131,33 +156,123 @@ namespace jm
 		setUniformUProc[4] = glUniform4uiv;
 	}
 	
-	void SetUniformF(int location, int components, int elements, const float* value)
+	template <typename T, typename CB>
+	inline void Shader::SetUniformOnBind(int elements, const T* values, CB callback)
 	{
-		setUniformFProc[components](location, elements, value);
+		if (currentShader == m_uniqueID)
+		{
+			callback(values);
+		}
+		else
+		{
+			m_setUniformCallbacks.emplace_back([values2 = std::vector<T>(values, values + elements), callback2 = std::move(callback)]
+			{
+				callback2(values2.data());
+			});
+		}
 	}
 	
-	void SetUniformI(int location, int components, int elements, const int32_t* value)
+	void Shader::SetUniformF(int location, int components, int elements, const float* value)
 	{
-		setUniformIProc[components](location, elements, value);
+		SetUniformOnBind(elements, value, [=] (const float* value2)
+		{
+			setUniformFProc[components](location, elements, value2);
+		});
 	}
 	
-	void SetUniformU(int location, int components, int elements, const uint32_t* value)
+	void Shader::SetUniformI(int location, int components, int elements, const int32_t* value)
 	{
-		setUniformUProc[components](location, elements, value);
+		SetUniformOnBind(elements, value, [=] (const int32_t* value2)
+		{
+			setUniformIProc[components](location, elements, value2);
+		});
 	}
 	
-	void SetUniformM2(int location, gsl::span<const glm::mat2> matrices)
+	void Shader::SetUniformU(int location, int components, int elements, const uint32_t* value)
 	{
-		glUniformMatrix2fv(location, matrices.size(), GL_FALSE, reinterpret_cast<const float*>(matrices.data()));
+		SetUniformOnBind(elements, value, [=] (const uint32_t* value2)
+		{
+			setUniformUProc[components](location, elements, value2);
+		});
 	}
 	
-	void SetUniformM3(int location, gsl::span<const glm::mat3> matrices)
+	void Shader::SetUniformM2(int location, gsl::span<const glm::mat2> matrices)
 	{
-		glUniformMatrix3fv(location, matrices.size(), GL_FALSE, reinterpret_cast<const float*>(matrices.data()));
+		SetUniformOnBind(matrices.size(), matrices.data(), [location, size=matrices.size()] (const glm::mat2* matrices2)
+		{
+			glUniformMatrix2fv(location, size, GL_FALSE, reinterpret_cast<const float*>(matrices2));
+		});
 	}
 	
-	void SetUniformM4(int location, gsl::span<const glm::mat4> matrices)
+	void Shader::SetUniformM3(int location, gsl::span<const glm::mat3> matrices)
 	{
-		glUniformMatrix4fv(location, matrices.size(), GL_FALSE, reinterpret_cast<const float*>(matrices.data()));
+		SetUniformOnBind(matrices.size(), matrices.data(), [location, size=matrices.size()] (const glm::mat3* matrices2)
+		{
+			glUniformMatrix3fv(location, size, GL_FALSE, reinterpret_cast<const float*>(matrices2));
+		});
 	}
+	
+	void Shader::SetUniformM4(int location, gsl::span<const glm::mat4> matrices)
+	{
+		SetUniformOnBind(matrices.size(), matrices.data(), [location, size=matrices.size()] (const glm::mat4* matrices2)
+		{
+			glUniformMatrix4fv(location, size, GL_FALSE, reinterpret_cast<const float*>(matrices2));
+		});
+	}
+#else
+	static PFNGLPROGRAMUNIFORM1FVPROC setUniformFProc[5];
+	static PFNGLPROGRAMUNIFORM1IVPROC setUniformIProc[5];
+	static PFNGLPROGRAMUNIFORM1UIVPROC setUniformUProc[5];
+	
+	void InitSetUniform()
+	{
+		setUniformFProc[1] = glProgramUniform1fv;
+		setUniformFProc[2] = glProgramUniform2fv;
+		setUniformFProc[3] = glProgramUniform3fv;
+		setUniformFProc[4] = glProgramUniform4fv;
+		
+		setUniformIProc[1] = glProgramUniform1iv;
+		setUniformIProc[2] = glProgramUniform2iv;
+		setUniformIProc[3] = glProgramUniform3iv;
+		setUniformIProc[4] = glProgramUniform4iv;
+		
+		setUniformUProc[1] = glProgramUniform1uiv;
+		setUniformUProc[2] = glProgramUniform2uiv;
+		setUniformUProc[3] = glProgramUniform3uiv;
+		setUniformUProc[4] = glProgramUniform4uiv;
+	}
+	
+	void Shader::SetUniformF(int location, int components, int elements, const float* value)
+	{
+		setUniformFProc[components](m_program.Get(), location, elements, value);
+	}
+	
+	void Shader::SetUniformI(int location, int components, int elements, const int32_t* value)
+	{
+		setUniformIProc[components](m_program.Get(), location, elements, value);
+	}
+	
+	void Shader::SetUniformU(int location, int components, int elements, const uint32_t* value)
+	{
+		setUniformUProc[components](m_program.Get(), location, elements, value);
+	}
+	
+	void Shader::SetUniformM2(int location, gsl::span<const glm::mat2> matrices)
+	{
+		glProgramUniformMatrix2fv(m_program.Get(), location, matrices.size(), GL_FALSE,
+		                          reinterpret_cast<const float*>(matrices.data()));
+	}
+	
+	void Shader::SetUniformM3(int location, gsl::span<const glm::mat3> matrices)
+	{
+		glProgramUniformMatrix3fv(m_program.Get(), location, matrices.size(), GL_FALSE,
+		                          reinterpret_cast<const float*>(matrices.data()));
+	}
+	
+	void Shader::SetUniformM4(int location, gsl::span<const glm::mat4> matrices)
+	{
+		glProgramUniformMatrix4fv(m_program.Get(), location, matrices.size(), GL_FALSE,
+		                          reinterpret_cast<const float*>(matrices.data()));
+	}
+#endif
 }

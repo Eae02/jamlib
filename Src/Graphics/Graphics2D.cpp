@@ -61,6 +61,8 @@ void main()
 		shader->AddFragmentShader(FragmentShaderCode);
 		shader->Link();
 		
+		shader->SetUniformI(shader->GetUniformLocation("uTexture"), 0);
+		
 		transformUniformLocation = shader->GetUniformLocation("transform");
 		redToAlphaUniformLocation = shader->GetUniformLocation("redToAlpha");
 		
@@ -275,12 +277,6 @@ void main()
 		shader->Bind();
 		m_vertexLayout.Bind();
 		
-		if (!textureBindingSet)
-		{
-			SetUniformI(shader->GetUniformLocation("uTexture"), 0);
-			textureBindingSet = true;
-		}
-		
 		//Reallocates the vertex buffer if it's too small
 		if (m_vertexBufferCapacity < m_vertices.size())
 		{
@@ -301,7 +297,7 @@ void main()
 		m_vertexLayout.SetVertexBuffer(0, m_vertexBuffer, 0);
 		m_vertexLayout.SetIndexBuffer(m_indexBuffer);
 		
-		SetUniformM3(transformUniformLocation, matrix);
+		shader->SetUniformM3(transformUniformLocation, matrix);
 		
 		int32_t currentRedToAlpha = -1;
 		for (const Batch& batch : m_batches)
@@ -309,7 +305,7 @@ void main()
 			int32_t newRedToAlpha = batch.redToAlpha;
 			if (newRedToAlpha != currentRedToAlpha)
 			{
-				SetUniformI(redToAlphaUniformLocation, batch.redToAlpha);
+				shader->SetUniformI(redToAlphaUniformLocation, batch.redToAlpha);
 				currentRedToAlpha = newRedToAlpha;
 			}
 			
@@ -343,5 +339,13 @@ void main()
 		{
 			color[i] = static_cast<uint8_t>(std::round(_color[i] * 255.0f));
 		}
+	}
+	
+	glm::mat3 MakeViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation, int screenWidth, int screenHeight)
+	{
+		return
+			glm::scale(glm::mat3(1), glm::vec2((zoom * 2) / screenWidth, (zoom * 2) / screenHeight)) *
+			glm::rotate(glm::mat3(1), rotation) *
+			glm::translate(glm::mat3(1), -centerWorld);
 	}
 }
