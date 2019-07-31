@@ -1,6 +1,3 @@
-[submodule "Deps/openal"]
-	path = Deps/openal
-	url = https://github.com/kcat/openal-soft.git
 [submodule "Deps/gl3w"]
 	path = Deps/gl3w
 	url = https://github.com/skaslev/gl3w.git
