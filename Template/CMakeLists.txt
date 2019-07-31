@@ -5,13 +5,13 @@ project(%PROJECT_NAME% CXX CXXPCH)
 include("JamLib/CMakeInclude.cmake")
 
 file(GLOB_RECURSE SOURCE_FILES Src/*.cpp Src/*.hpp)
-add_executable(game ${SOURCE_FILES})
+add_executable(%PROJECT_NAME% ${SOURCE_FILES})
 
-set_target_properties(game PROPERTIES
+set_target_properties(%PROJECT_NAME% PROPERTIES
 	COMPILE_FLAGS "-Wall -Wextra -Wshadow -pedantic --std=c++17"
 	RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/Bin/${CMAKE_BUILD_TYPE}-${CMAKE_SYSTEM_NAME}"
 )
 
-target_link_jamlib(game)
+target_link_jamlib(%PROJECT_NAME%)
 
-target_precompiled_header(game PCH.hpp)
+target_precompiled_header(%PROJECT_NAME% PCH.hpp)

@@ -30,22 +30,12 @@ namespace jm
 		
 		TileSet tileSet(texture, tileWidth, tileHeight, margin, margin, spacing, spacing);
 		
-		//Loops through tile tags to find the maximum tile id
-		int maxTileId = -1;
-		for (auto tileEl = tileSetXml.FirstChildElement("tile"); tileEl; tileEl = tileEl->NextSiblingElement("tile"))
-		{
-			maxTileId = std::max(maxTileId, tileEl->IntAttribute("id", -1));
-		}
-		
-		//Adds tile up to the maximum tile id
+		//Adds tiles
 		for (uint32_t y = 0; y < texture.Height(); y += tileHeight)
 		{
 			for (uint32_t x = 0; x < texture.Width(); x += tileWidth)
 			{
-				if ((int)tileSet.NumTiles() <= maxTileId)
-				{
-					tileSet.AddTile(x, y, 0);
-				}
+				tileSet.AddTile(x, y, 0);
 			}
 		}
 		
@@ -202,6 +192,10 @@ namespace jm
 					}
 				}
 			}
+			else if (isObjectLayer)
+			{
+				
+			}
 			
 			terrain.m_layers.push_back(std::move(layer));
 		}
@@ -211,13 +205,16 @@ namespace jm
 	
 	void TMXTerrain::Draw(const glm::mat3& transform)
 	{
-		glm::mat3 fullTransform = glm::scale(transform, glm::vec2(m_tileWidth, m_tileHeight));
+		glm::vec2 tileSize = glm::vec2(m_tileWidth, m_tileHeight);
+		glm::mat3 fullTransform = glm::scale(transform, tileSize);
 		
 		for (TMXLayer& layer : m_layers)
 		{
+			glm::mat3 layerTransform = glm::translate(fullTransform, glm::vec2(layer.offset) / tileSize);
+			
 			if (layer.tileMap.has_value())
 			{
-				layer.tileMap->Draw(fullTransform);
+				layer.tileMap->Draw(layerTransform);
 			}
 		}
 	}
