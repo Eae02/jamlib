@@ -173,7 +173,7 @@ namespace jm
 	
 	JAPI bool DebugMode();
 	
-	JAPI void Panic(std::string message);
+	[[noreturn]] JAPI void Panic(std::string message);
 	
 	JAPI std::string CanonicalPath(std::string_view path);
 	JAPI std::string_view BaseName(std::string_view path);
