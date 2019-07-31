@@ -23,12 +23,20 @@ else
 	unzip -j Deps/tinyxml/tinyxml.zip */tinyxml2.h -d Deps/tinyxml
 fi
 
-##Downloads and extracts SDL2
+#Downloads and extracts SDL2
 if [[ -d "Deps/sdl2" ]]; then
 	echo "Skipping download of sdl2 since Deps/sdl2 already exists"
 else
 	mkdir -p Deps/sdl2
 	curl https://www.libsdl.org/release/SDL2-2.0.9.tar.gz -sS | tar -C Deps/sdl2 -xzf - --strip 1
+fi
+
+#Downloads and extracts OpenAL
+if [[ -d "Deps/openal" ]]; then
+	echo "Skipping download of openal since Deps/openal already exists"
+else
+	mkdir -p Deps/openal
+	curl https://kcat.strangesoft.net/openal-releases/openal-soft-1.19.1.tar.bz2 -sS | tar -C Deps/openal -xjf - --strip 1
 fi
 
 #Builds SDL2 for linux
@@ -40,3 +48,13 @@ make -j4 -C Deps/sdl2/build/linux
 mkdir -p Deps/sdl2/build/mingw
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(realpath ./CMake/MinGWToolchain.cmake) -DSDL_SHARED=OFF -DSDL_STATIC=ON -HDeps/sdl2 -BDeps/sdl2/build/mingw
 make -j4 -C Deps/sdl2/build/mingw
+
+#Builds OpenAL for linux
+mkdir -p Deps/openal/build/linux
+cmake -DCMAKE_BUILD_TYPE=Release -DALSOFT_UTILS=OFF -DALSOFT_NO_CONFIG_UTIL=ON -DALSOFT_EXAMPLES=OFF -DALSOFT_TESTS=OFF -HDeps/openal -BDeps/openal/build/linux
+make -j4 -C Deps/openal/build/linux
+
+#Builds OpenAL for mingw
+mkdir -p Deps/openal/build/mingw
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$(realpath ./CMake/MinGWToolchain.cmake) -DALSOFT_UTILS=OFF -DALSOFT_NO_CONFIG_UTIL=ON -DALSOFT_EXAMPLES=OFF -DALSOFT_TESTS=OFF -HDeps/openal -BDeps/openal/build/mingw
+make -j4 -C Deps/openal/build/mingw

@@ -18,5 +18,3 @@ cp Bin/Release-Linux/assets.zip Bin/Release-Emscripten/assets.zip
 cp /usr/x86_64-w64-mingw32/bin/libgcc_s_seh-1.dll Bin/Release-Windows
 cp /usr/x86_64-w64-mingw32/bin/libstdc++-6.dll Bin/Release-Windows
 cp /usr/x86_64-w64-mingw32/bin/libwinpthread-1.dll Bin/Release-Windows
-
-cp $(dirname "$0")/WebIndex.html Bin/Release-Emscripten/index.html

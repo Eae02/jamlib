@@ -4,6 +4,7 @@
 #include "Graphics/Graphics.hpp"
 #include "Graphics/Graphics2D.hpp"
 #include "Asset.hpp"
+#include "Audio/Audio.hpp"
 
 #include <SDL.h>
 #include <iostream>
@@ -25,6 +26,7 @@ namespace jm
 	void AddGameController(SDL_GameController* controller);
 	
 	void RegisterTiledAssetLoaders();
+	void RegisterAudioAssetLoaders();
 	void CreateDefaultTileMapShader();
 	void DestroyDefaultTileMapShader();
 	
@@ -42,6 +44,8 @@ namespace jm
 			std::cerr << "SDL failed to initialize: " << SDL_GetError() << std::endl;
 			std::exit(1);
 		}
+		
+		detail::InitializeOpenAL();
 		
 		for (int i = 0; i < argc; i++)
 		{
@@ -84,6 +88,7 @@ namespace jm
 		CreateDefaultTileMapShader();
 		
 		RegisterTiledAssetLoaders();
+		RegisterAudioAssetLoaders();
 		Texture2D::RegisterAssetLoader();
 		
 		detail::LoadAssets();
@@ -96,6 +101,7 @@ namespace jm
 		Graphics2D::DestroyStatic();
 		detail::DestroyGlobalSamplers();
 		DestroyDefaultTileMapShader();
+		detail::CloseOpenAL();
 	}
 	
 	void ButtonDownEvent(Button button, bool isRepeat)

@@ -10,3 +10,5 @@
 #include "World/TileMap.hpp"
 #include "World/TileSet.hpp"
 #include "World/TMXTerrain.hpp"
+#include "Audio/Audio.hpp"
+#include "Audio/AudioUtils.hpp"
