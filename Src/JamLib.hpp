@@ -5,6 +5,7 @@
 #include "Rectangle.hpp"
 #include "Utils.hpp"
 #include "Asset.hpp"
+#include "Camera2D.hpp"
 #include "Graphics/Graphics2D.hpp"
 #include "Graphics/GaussianBlur.hpp"
 #include "World/TileMap.hpp"
