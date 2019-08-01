@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/JamLib/Src",
+                "${workspaceFolder}/JamLib/Deps/glm",
+                "${workspaceFolder}/JamLib/Deps/gsl/include"
+            ],
+            "forcedInclude": [
+                "${workspaceFolder}/PCH.hpp"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "cppStandard": "c++17",
+            "cStandard": "c11"
+        }
+    ],
+    "version": 4
+}
