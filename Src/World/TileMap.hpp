@@ -8,6 +8,8 @@
 #include <vector>
 #include <tuple>
 #include <memory>
+#include <cstdint>
+#include <stdint-gcc.h>
 
 namespace jm
 {
@@ -39,6 +41,12 @@ namespace jm
 		void Draw(const glm::mat3& transform);
 		
 		void Draw(const class Shader& shader);
+		
+		uint32_t GetWidth() const
+		{ return m_width; }
+		
+		uint32_t GetHeight() const
+		{ return m_height; }
 		
 		static const char* DefaultVertexShader;
 		

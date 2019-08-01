@@ -47,6 +47,13 @@ namespace jm
 		
 		void Draw(const glm::mat3& transform);
 		
+		int MapWidth() const { return m_mapWidth; }
+		int MapHeight() const { return m_mapHeight; }
+		
+		int TileWidth() const { return m_tileWidth; }
+		int TileHeight() const { return m_tileHeight; }
+		glm::ivec2 TileSize() const { return glm::ivec2(m_tileWidth, m_tileHeight); }
+		
 	private:
 		TMXTerrain() = default;
 		
