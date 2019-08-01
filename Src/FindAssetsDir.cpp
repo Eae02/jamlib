@@ -36,7 +36,8 @@ namespace jm::detail
 			else if (entry->d_type == DT_REG)
 			{
 				std::string assetName = fullPath.substr(prefixLen);
-				processAsset(std::move(assetName), [fullPath=std::move(fullPath)] () -> std::vector<char>
+				std::string source = fullPath;
+				processAsset(std::move(assetName), std::move(source), [fullPath=std::move(fullPath)] () -> std::vector<char>
 				{
 					std::ifstream stream(fullPath, std::ios::binary);
 					if (!stream)

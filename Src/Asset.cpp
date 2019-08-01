@@ -3,6 +3,10 @@
 
 #include <unordered_map>
 
+#ifdef __linux__
+#include <sys/stat.h>
+#endif
+
 namespace jm
 {
 	std::vector<detail::AssetLoader> detail::assetLoaders;
@@ -10,10 +14,22 @@ namespace jm
 	struct Asset
 	{
 		std::string name;
+		std::string source;
 		void* assetMemory;
 		bool loaded;
 		size_t loaderIndex;
 		std::function<std::vector<char>()> readCallback;
+		std::chrono::system_clock::time_point loadTime;
+		std::vector<std::function<void(void*)>> initCallbacks;
+		
+		void Unload()
+		{
+			if (loaded)
+			{
+				detail::assetLoaders[loaderIndex].destructor(assetMemory);
+				loaded = false;
+			}
+		}
 		
 		bool operator<(const Asset& other) const
 		{
@@ -44,7 +60,7 @@ namespace jm
 		return -1;
 	}
 	
-	static void ProcessAsset(std::string name, std::function<std::vector<char>()> readCallback)
+	static void ProcessAsset(std::string name, std::string source, std::function<std::vector<char>()> readCallback)
 	{
 		int64_t loader = FindAssetLoader(name);
 		if (loader == -1)
@@ -55,6 +71,7 @@ namespace jm
 		
 		Asset& asset = assets.emplace_back();
 		asset.name = std::move(name);
+		asset.source = std::move(source);
 		asset.loaderIndex = loader;
 		asset.readCallback = std::move(readCallback);
 	}
@@ -70,8 +87,18 @@ namespace jm
 		
 		detail::assetLoaders[asset.loaderIndex].loadCallback(data, asset.name, asset.assetMemory);
 		
-		asset.readCallback = nullptr;
+		asset.loadTime = std::chrono::system_clock::now();
 		asset.loaded = true;
+		
+		if (asset.source.empty())
+		{
+			asset.readCallback = nullptr;
+		}
+		
+		for (const std::function<void(void*)>& initCallback : asset.initCallbacks)
+		{
+			initCallback(asset.assetMemory);
+		}
 	}
 	
 	void detail::LoadAssets()
@@ -107,7 +134,7 @@ namespace jm
 		}
 	}
 	
-	void* detail::GetAsset(std::string_view name, std::type_index type)
+	static inline Asset& FindAsset(std::string_view name, std::type_index type)
 	{
 		auto it = std::lower_bound(assets.begin(), assets.end(), name);
 		if (it == assets.end() || it->name != name)
@@ -115,10 +142,46 @@ namespace jm
 			Panic(Concat({ "Asset not found: '", name, "'." }));
 		}
 		LoadAsset(*it);
-		if (assetLoaders[it->loaderIndex].typeIndex != type)
+		if (detail::assetLoaders[it->loaderIndex].typeIndex != type)
 		{
 			Panic(Concat({ "Attempted to get asset '", name, "' as an incorrect type." }));
 		}
-		return it->assetMemory;
+		return *it;
+	}
+	
+	void* detail::GetAsset(std::string_view name, std::type_index type)
+	{
+		return FindAsset(name, type).assetMemory;
+	}
+	
+	void detail::InitAssetCallback(std::string_view name, std::type_index type, std::function<void(void*)> callback)
+	{
+		Asset& asset = FindAsset(name, type);
+		if (asset.loaded)
+			callback(asset.assetMemory);
+		if (!asset.source.empty())
+			asset.initCallbacks.push_back(std::move(callback));
+	}
+	
+	void detail::PollChangedAssets()
+	{
+#ifdef __linux__
+		for (Asset& asset : assets)
+		{
+			if (asset.source.empty())
+				continue;
+			
+			struct stat attrib;
+			stat(asset.source.c_str(), &attrib);
+			auto lastWriteTime = std::chrono::system_clock::from_time_t(attrib.st_mtime);
+			
+			if (lastWriteTime > asset.loadTime)
+			{
+				asset.Unload();
+				LoadAsset(asset);
+				std::cout << "Reloaded asset '" << asset.name << "'.\n";
+			}
+		}
+#endif
 	}
 }

@@ -14,12 +14,13 @@ namespace jm
 {
 	namespace detail
 	{
-		using ProcessAssetCB = void (*)(std::string name, std::function<std::vector<char>()> loadCallback);
+		using ProcessAssetCB = void (*)(std::string name, std::string source, std::function<std::vector<char>()> loadCallback);
 		
 		struct AssetLoader
 		{
 			std::string extension;
 			std::function<void(gsl::span<const char> data, const std::string& name, void* asset)> loadCallback;
+			void(*destructor)(void*);
 			std::type_index typeIndex;
 			size_t typeSize;
 			
@@ -35,6 +36,10 @@ namespace jm
 		void LoadAssets();
 		
 		JAPI void* GetAsset(std::string_view name, std::type_index type);
+		
+		JAPI void InitAssetCallback(std::string_view name, std::type_index type, std::function<void(void*)> callback);
+		
+		JAPI void PollChangedAssets();
 	}
 	
 	template <typename T>
@@ -45,11 +50,21 @@ namespace jm
 		{
 			new (asset) T(loader(data, name));
 		};
+		assetLoader.destructor = [] (void* asset) { static_cast<T*>(asset)->~T(); };
 	}
 	
 	template <typename T>
 	T& GetAsset(std::string_view name)
 	{
 		return *static_cast<T*>(detail::GetAsset(name, std::type_index(typeid(T))));
+	}
+	
+	template <typename T>
+	void InitAssetCallback(std::string_view name, std::function<void(T& asset)> callback)
+	{
+		detail::InitAssetCallback(name, std::type_index(typeid(T)), [callback=std::move(callback)] (void* asset)
+		{
+			callback(*static_cast<T*>(asset));
+		});
 	}
 }

@@ -31,7 +31,7 @@ namespace jm::detail
 			
 			size_t fileSize = fileStat.m_uncomp_size;
 			
-			processAsset(fileStat.m_filename, [=] () -> std::vector<char>
+			processAsset(fileStat.m_filename, { }, [=] () -> std::vector<char>
 			{
 				std::vector<char> extractedData(fileSize);
 				mz_zip_reader_extract_to_mem(archive.get(), i, extractedData.data(), fileSize, 0);

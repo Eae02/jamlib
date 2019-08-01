@@ -124,6 +124,11 @@ namespace jm
 		float dt = std::chrono::duration_cast<std::chrono::nanoseconds>(thisFrameStart - lastFrameStart).count() * 1E-9f;
 		lastFrameStart = thisFrameStart;
 		
+		if (debugMode)
+		{
+			detail::PollChangedAssets();
+		}
+		
 		*detail::previousIS = *detail::currentIS;
 		detail::currentIS->cursorDeltaX = 0;
 		detail::currentIS->cursorDeltaY = 0;
