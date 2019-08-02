@@ -1,4 +1,5 @@
 #include "TMXTerrain.hpp"
+#include "TileSolidityMap.hpp"
 #include "../Asset.hpp"
 
 #include <tinyxml2.h>
@@ -8,10 +9,10 @@ namespace jm
 {
 	static TileSet LoadTileSetXML(const tinyxml2::XMLElement& tileSetXml, const std::string& name)
 	{
-		const uint32_t tileWidth  = tileSetXml.UnsignedAttribute("tilewidth", 1);
+		const uint32_t tileWidth = tileSetXml.UnsignedAttribute("tilewidth", 1);
 		const uint32_t tileHeight = tileSetXml.UnsignedAttribute("tileheight", 1);
-		const uint32_t spacing    = tileSetXml.UnsignedAttribute("spacing", 0);
-		const uint32_t margin     = tileSetXml.UnsignedAttribute("margin", 0);
+		const uint32_t spacing = tileSetXml.UnsignedAttribute("spacing", 0);
+		const uint32_t margin = tileSetXml.UnsignedAttribute("margin", 0);
 		
 		const tinyxml2::XMLElement* imageEl = tileSetXml.FirstChildElement("image");
 		if (imageEl == nullptr)
@@ -30,12 +31,48 @@ namespace jm
 		
 		TileSet tileSet(texture, tileWidth, tileHeight, margin, margin, spacing, spacing);
 		
-		//Adds tiles
-		for (uint32_t y = 0; y < texture.Height(); y += tileHeight)
+		//Searches for tile data attributes
+		std::vector<std::pair<int, uint32_t>> dataMap;
+		for (auto tileEl = tileSetXml.FirstChildElement("tile"); tileEl; tileEl = tileEl->NextSiblingElement("tile"))
 		{
-			for (uint32_t x = 0; x < texture.Width(); x += tileWidth)
+			const tinyxml2::XMLElement* propertiesEl = tileEl->FirstChildElement("properties");
+			if (propertiesEl == nullptr)
+				continue;
+			
+			uint32_t data;
+			bool hasData = false;
+			for (const tinyxml2::XMLElement* propertyEl = propertiesEl->FirstChildElement("property");
+				propertyEl; propertyEl = propertyEl->NextSiblingElement("property"))
 			{
-				tileSet.AddTile(x, y, 0);
+				if (std::strcmp(propertyEl->Attribute("name"), "data") == 0)
+				{
+					hasData = true;
+					data = std::atoi(propertyEl->Attribute("value"));
+					break;
+				}
+			}
+			
+			if (hasData)
+			{
+				dataMap.emplace_back(tileEl->IntAttribute("id"), data);
+			}
+		}
+		std::sort(dataMap.begin(), dataMap.end());
+		
+		//Adds tiles
+		size_t dataMapIdx = 0;
+		for (uint32_t y = 0; y < texture.Height() / tileHeight; y++)
+		{
+			for (uint32_t x = 0; x < texture.Width() / tileWidth; x++)
+			{
+				uint32_t data = 0;
+				if (dataMapIdx < dataMap.size() && dataMap[dataMapIdx].first == (int)tileSet.NumTiles())
+				{
+					data = dataMap[dataMapIdx].second;
+					dataMapIdx++;
+				}
+				
+				tileSet.AddTile(x, y, data);
 			}
 		}
 		
@@ -175,10 +212,8 @@ namespace jm
 						
 						uint32_t maskedId = *tilePtr & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
 						
-						auto tileSetIt = std::lower_bound(tileSetsByFirstGId.begin(), tileSetsByFirstGId.end(),
-							std::pair<int, const jm::TileSet*>(maskedId, nullptr));
-						if (tileSetIt == tileSetsByFirstGId.end())
-							continue;
+						auto tileSetIt = std::upper_bound(tileSetsByFirstGId.begin(), tileSetsByFirstGId.end(),
+							std::pair<int, const jm::TileSet*>(maskedId, nullptr)) - 1;
 						
 						TileFlags tileFlags = TileFlags::None;
 						if (*tilePtr & FLIPPED_HORIZONTALLY_FLAG)
@@ -217,6 +252,21 @@ namespace jm
 				layer.tileMap->Draw(layerTransform);
 			}
 		}
+	}
+	
+	TileSolidityMap TMXTerrain::MakeSolidityMap(uint32_t dataMask) const
+	{
+		TileSolidityMap solidityMap(m_mapWidth, m_mapHeight);
+		solidityMap.tileWidth = m_tileWidth;
+		solidityMap.tileHeight = m_tileHeight;
+		for (const TMXLayer& layer : m_layers)
+		{
+			if (layer.tileMap.has_value())
+			{
+				solidityMap.Apply(*layer.tileMap, dataMask);
+			}
+		}
+		return solidityMap;
 	}
 	
 	void RegisterTiledAssetLoaders()

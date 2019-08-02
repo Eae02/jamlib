@@ -55,6 +55,8 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 	)
 endif()
 
+target_compile_options(jam PUBLIC -DGLM_FORCE_RADIANS -DGLM_FORCE_CTOR_INIT -DGLM_ENABLE_EXPERIMENTAL)
+
 set_target_properties(jam sandbox PROPERTIES
 	CXX_STANDARD 17
 	ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR}

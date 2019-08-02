@@ -11,5 +11,7 @@
 #include "World/TileMap.hpp"
 #include "World/TileSet.hpp"
 #include "World/TMXTerrain.hpp"
+#include "World/TileSolidityMap.hpp"
+#include "World/GridPathFinder.hpp"
 #include "Audio/Audio.hpp"
 #include "Audio/AudioUtils.hpp"

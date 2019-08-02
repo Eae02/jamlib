@@ -54,6 +54,8 @@ namespace jm
 		int TileHeight() const { return m_tileHeight; }
 		glm::ivec2 TileSize() const { return glm::ivec2(m_tileWidth, m_tileHeight); }
 		
+		class TileSolidityMap MakeSolidityMap(uint32_t dataMask) const;
+		
 	private:
 		TMXTerrain() = default;
 		

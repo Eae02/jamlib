@@ -107,7 +107,7 @@ namespace jm
 					for (int dy = 0; dy < 2; dy++)
 					{
 						int iy = tileSet.GetTexture().Height() - (pixelOffset.y + dy * (tileSet.TileHeight() - 1)) - 1;
-						uvs[dx][dy].x = (float)(pixelOffset.x + dx * (tileSet.TileWidth() - 1)) * uvScaleX;
+						uvs[dx][dy].x = (float)(pixelOffset.x + dx * tileSet.TileWidth()) * uvScaleX;
 						uvs[dx][dy].y = (float)iy * uvScaleY;
 					}
 				}
@@ -142,8 +142,8 @@ namespace jm
 						TileMapVertex& vertex = vertices.emplace_back();
 						vertex.texCoord[0] = uvs[dx][dy].x;
 						vertex.texCoord[1] = uvs[dx][dy].y;
-						vertex.pos[0] = x + dx;
-						vertex.pos[1] = y + dy;
+						vertex.pos[0] = (float)(x + dx);
+						vertex.pos[1] = (float)(y + dy);
 					}
 				}
 			}
