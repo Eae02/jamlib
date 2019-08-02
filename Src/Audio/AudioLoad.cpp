@@ -39,6 +39,8 @@ namespace jm
 			Panic(Concat({ "Error loading WAV from '", name, "': the file uses an incompatible format."}));
 		}
 		
+		DisableAssetReload(name);
+		
 		AudioClip clip;
 		clip.SetData(format, audioSpec.size, audioBuffer, audioSpec.freq);
 		return clip;
@@ -59,6 +61,8 @@ namespace jm
 		}
 		
 		AudioFormat format = numChannels == 1 ? AudioFormat::Mono16 : AudioFormat::Stereo16;
+		
+		DisableAssetReload(name);
 		
 		AudioClip clip;
 		clip.SetData(format, numSamples * 2, audioBuffer, sampleRate);

@@ -67,4 +67,6 @@ namespace jm
 			callback(*static_cast<T*>(asset));
 		});
 	}
+	
+	void DisableAssetReload(std::string_view assetName);
 }

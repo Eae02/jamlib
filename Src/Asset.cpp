@@ -134,15 +134,14 @@ namespace jm
 		}
 	}
 	
-	static inline Asset& FindAsset(std::string_view name, std::type_index type)
+	static inline Asset& FindAsset(std::string_view name, const std::type_index* type)
 	{
 		auto it = std::lower_bound(assets.begin(), assets.end(), name);
 		if (it == assets.end() || it->name != name)
 		{
 			Panic(Concat({ "Asset not found: '", name, "'." }));
 		}
-		LoadAsset(*it);
-		if (detail::assetLoaders[it->loaderIndex].typeIndex != type)
+		if (type != nullptr && detail::assetLoaders[it->loaderIndex].typeIndex != *type)
 		{
 			Panic(Concat({ "Attempted to get asset '", name, "' as an incorrect type." }));
 		}
@@ -151,12 +150,14 @@ namespace jm
 	
 	void* detail::GetAsset(std::string_view name, std::type_index type)
 	{
-		return FindAsset(name, type).assetMemory;
+		Asset& asset = FindAsset(name, &type);
+		LoadAsset(asset);
+		return asset.assetMemory;
 	}
 	
 	void detail::InitAssetCallback(std::string_view name, std::type_index type, std::function<void(void*)> callback)
 	{
-		Asset& asset = FindAsset(name, type);
+		Asset& asset = FindAsset(name, &type);
 		if (asset.loaded)
 			callback(asset.assetMemory);
 		if (!asset.source.empty())
@@ -183,5 +184,10 @@ namespace jm
 			}
 		}
 #endif
+	}
+	
+	void DisableAssetReload(std::string_view assetName)
+	{
+		FindAsset(assetName, nullptr).source.clear();
 	}
 }
