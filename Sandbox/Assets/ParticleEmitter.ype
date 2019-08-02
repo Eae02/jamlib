@@ -1,0 +1,12 @@
+texture: Player.png
+lifeTime: 3
+endOpacity: 0
+angularVelocity: [-50, 50]
+direction: [-10, 10]
+size: 20
+emissionRate: 100
+speed: 500
+directionToRotation: false
+gravity: 0
+spawnRadius: 10
+blend: additive

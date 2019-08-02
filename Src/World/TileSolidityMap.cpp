@@ -51,17 +51,29 @@ namespace jm
 		end = ToLocal(end);
 		
 		float len = glm::distance(start, end);
-		glm::vec2 dir = (end - start) / len;
-		
-		float a = 0;
-		while (a < len)
+		if (len > 0.01f)
 		{
-			glm::vec2 pos = start + dir * a;
-			if (IsSolid(std::floor(pos.x), std::floor(pos.y)))
-				return true;
-			float stepX = ((dir.x > 0 ? (std::floor(pos.x) + 1) : (std::ceil(pos.x) - 1)) - pos.x) / dir.x;
-			float stepY = ((dir.y > 0 ? (std::floor(pos.y) + 1) : (std::ceil(pos.y) - 1)) - pos.y) / dir.y;
-			a += std::min(stepX, stepY) + 0.001f;
+			glm::vec2 dir = (end - start) / len;
+			
+			float a = 0;
+			while (a < len)
+			{
+				glm::vec2 pos = start + dir * a;
+				assert(InRange(std::floor(pos.x), std::floor(pos.y)));
+				if (IsSolid(std::floor(pos.x), std::floor(pos.y)))
+					return true;
+				
+				auto CalcStep = [&](float d, float s)
+				{
+					if (std::abs(d) < 0.001f)
+						return INFINITY;
+					return ((d > 0 ? (std::floor(s) + 1) : (std::ceil(s) - 1)) - s) / d;
+				};
+				
+				float stepX = CalcStep(dir.x, pos.x);
+				float stepY = CalcStep(dir.y, pos.y);
+				a += std::min(stepX, stepY) + 0.001f;
+			}
 		}
 		
 		return IsSolid(std::floor(end.x), std::floor(end.y));

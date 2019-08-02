@@ -15,3 +15,5 @@
 #include "World/GridPathFinder.hpp"
 #include "Audio/Audio.hpp"
 #include "Audio/AudioUtils.hpp"
+#include "Particles.hpp"
+#include "ParticleEmitterType.hpp"

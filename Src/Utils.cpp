@@ -5,10 +5,17 @@
 #include <sstream>
 #include <iomanip>
 #include <stack>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#else
 #include <SDL_messagebox.h>
+#endif
 
 namespace jm
 {
+	pcg32_fast* globalRNG;
+	
 	std::string_view TrimString(std::string_view input)
 	{
 		if (input.empty())
@@ -151,13 +158,19 @@ namespace jm
 	
 	void Panic(std::string message)
 	{
+#ifdef __EMSCRIPTEN__
+		EM_ASM_({displayError(UTF8ToString($0));}, message.c_str());
+		std::exit(0);
+#else
 		if (debugMode)
 		{
 			std::cerr << "Fatal error: " << message << "\n";
 			std::abort();
 		}
+		
 		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal Error", message.c_str(), nullptr);
 		std::exit(1);
+#endif
 	}
 	
 	static const char* Base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

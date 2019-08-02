@@ -19,3 +19,6 @@
 [submodule "Deps/pcg"]
 	path = Deps/pcg
 	url = https://github.com/imneme/pcg-cpp.git
+[submodule "Deps/yaml-cpp"]
+	path = Deps/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp.git

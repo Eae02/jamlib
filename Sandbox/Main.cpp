@@ -4,7 +4,8 @@ struct Game : jm::Game
 {
 	Game()
 	{
-		gfx.SetSampler(&jm::Pixel2DSampler());
+		emitter = std::make_shared<jm::ParticleEmitter>(jm::GetAsset<jm::ParticleEmitterType>("ParticleEmitter.ype"));
+		particleManager.AddEmitter(emitter);
 	}
 	
 	void RunFrame(float dt) override
@@ -22,14 +23,12 @@ struct Game : jm::Game
 		
 		jm::ClearColor(glm::vec4(jm::ParseHexColor(0x0066ff), 1));
 		
-		gfx.Begin();
-		
-		gfx.Sprite(jm::GetAsset<jm::Texture2D>("Player.png"), glm::vec2(std::round(rx), 10), glm::vec4(1.0f), 2.0f);
-		
-		gfx.End();
+		particleManager.Update(dt);
+		particleManager.Draw(jm::MakeViewMatrix2D(glm::vec2(0), 1, 0));
 	}
 	
-	jm::Graphics2D gfx;
+	std::shared_ptr<jm::ParticleEmitter> emitter;
+	jm::ParticleManager particleManager;
 	
 	float rx = 10;
 	float vx = 0;

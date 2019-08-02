@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(JamLib)
 
-file(GLOB_RECURSE SOURCE_FILES Src/*.cpp Src/*.hpp)
+file(GLOB_RECURSE SOURCE_FILES Src/*.cpp Src/*.hpp Deps/yaml-cpp/src/*.cpp)
 
 add_compile_options(-Wall -Wextra -Wshadow -pedantic -Wno-unused-parameter -Wno-missing-field-initializers)
 
@@ -49,9 +49,12 @@ elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Emscripten")
 	set_target_properties(jam sandbox PROPERTIES
 		LINK_FLAGS "-lopenal -s ALLOW_MEMORY_GROWTH=1 -s USE_SDL=2 -s WASM=1 -s USE_WEBGL2=1 -s FULL_ES3=1 -s FETCH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']"
 	)
-	target_compile_options(jam PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17>)
+	target_compile_options(jam PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++17> $<$<CONFIG:DEBUG>:-g4>)
 	set_target_properties(sandbox PROPERTIES
 		OUTPUT_NAME "game"
+	)
+	add_custom_command(POST_BUILD TARGET jam
+		COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/WebIndex.html $<TARGET_FILE_DIR:jam>/index.html
 	)
 endif()
 
@@ -82,6 +85,7 @@ target_include_directories(jam SYSTEM
 		Deps/glm
 		Deps/pcg/include
 	PRIVATE
+		Deps/yaml-cpp/include
 		Deps/tinyxml
 		Deps/miniz
 		Deps/openal/include

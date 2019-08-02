@@ -25,12 +25,16 @@
 				background-color: #0a394a;
 			}
 			
-			#infoWrap.hidden {
+			#infoWrap[data-mode="err"] {
+				background-color: #7b1e08;
+			}
+			
+			#infoWrap[data-mode="hide"] {
 				display: none;
 			}
 			
 			#infoText {
-				font-size: 4vh;
+				font-size: 3vh;
 				vertical-align: middle;
 				display: inline-block;
 				line-height: normal;
@@ -40,23 +44,27 @@
 		</style>
 	</head>
 	<body>
-		<div id="infoWrap">
+		<div id="infoWrap" data-mode="load">
 			<span id="infoText">Loading...</span>
 		</div>
 		<canvas id="canvas"></canvas>
 		<script type="text/javascript" src="game.js"></script>
 		<script>
+			function displayError(msg) {
+				document.getElementById("infoWrap").dataset.mode = "err";
+				document.getElementById("infoText").innerText = msg;
+			}
+			
 			Module.canvas = document.getElementById("canvas");
 			Module.preRun = function() {
 				FS.createPreloadedFile(".", "assets.zip", "assets.zip", true, false);
 			};
 			Module.onRuntimeInitialized = function() {
-				document.getElementById("infoWrap").classList.add("hidden");
+				document.getElementById("infoWrap").dataset.mode = "hide"
 				Module.cwrap("WebMain", "", [])();
 			};
 			Module.onAbort = function() {
-				document.getElementById("infoWrap").classList.remove("hidden");
-				document.getElementById("infoText").innerText = "Error";
+				displayError("Unknown Error");
 			};
 		</script>
 	</body>

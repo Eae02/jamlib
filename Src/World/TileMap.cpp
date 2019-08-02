@@ -106,7 +106,7 @@ namespace jm
 				{
 					for (int dy = 0; dy < 2; dy++)
 					{
-						int iy = tileSet.GetTexture().Height() - (pixelOffset.y + dy * (tileSet.TileHeight() - 1)) - 1;
+						int iy = tileSet.GetTexture().Height() - (pixelOffset.y + dy * tileSet.TileHeight());
 						uvs[dx][dy].x = (float)(pixelOffset.x + dx * tileSet.TileWidth()) * uvScaleX;
 						uvs[dx][dy].y = (float)iy * uvScaleY;
 					}

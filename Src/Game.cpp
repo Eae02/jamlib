@@ -27,8 +27,11 @@ namespace jm
 	
 	void RegisterTiledAssetLoaders();
 	void RegisterAudioAssetLoaders();
+	void RegisterParticleEmitterAssetLoader();
 	void CreateDefaultTileMapShader();
 	void DestroyDefaultTileMapShader();
+	void CreateParticleSystemShader();
+	void DestroyParticleSystemShader();
 	
 	void InitSetUniform();
 	
@@ -70,6 +73,10 @@ namespace jm
 		
 		window = SDL_CreateWindow("Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1200, 800,
 			SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL);
+		if (window == nullptr)
+		{
+			Panic(SDL_GetError());
+		}
 		
 		detail::currentIS = new InputState;
 		detail::previousIS = new InputState;
@@ -77,18 +84,25 @@ namespace jm
 		glContext = SDL_GL_CreateContext(window);
 		if (glContext == nullptr)
 		{
-			std::cerr << "Error creating OpenGL context: " << SDL_GetError() << "\n";
-			std::abort();
+#ifdef __EMSCRIPTEN__
+			Panic("Could not create OpenGL context,\nmake sure your browser supports WebGL2.");
+#else
+			Panic(SDL_GetError());
+#endif
 		}
+		
+		globalRNG = new pcg32_fast(std::chrono::high_resolution_clock::now().time_since_epoch().count());
 		
 		detail::InitializeOpenGL(debugMode);
 		
 		InitSetUniform();
 		Graphics2D::InitStatic();
 		CreateDefaultTileMapShader();
+		CreateParticleSystemShader();
 		
 		RegisterTiledAssetLoaders();
 		RegisterAudioAssetLoaders();
+		RegisterParticleEmitterAssetLoader();
 		Texture2D::RegisterAssetLoader();
 		
 		detail::LoadAssets();
@@ -96,11 +110,13 @@ namespace jm
 	
 	inline void Uninit()
 	{
+		delete globalRNG;
 		delete detail::currentIS;
 		delete detail::previousIS;
 		Graphics2D::DestroyStatic();
 		detail::DestroyGlobalSamplers();
 		DestroyDefaultTileMapShader();
+		DestroyParticleSystemShader();
 		detail::CloseOpenAL();
 	}
 	

@@ -8,6 +8,8 @@
 #include <cmath>
 #include <string_view>
 #include <glm/glm.hpp>
+#include <random>
+#include <pcg_random.hpp>
 
 #include "API.hpp"
 
@@ -182,4 +184,28 @@ namespace jm
 	JAPI std::string_view ParentPath(std::string_view path, bool includeSlash);
 	
 	JAPI std::vector<char> Base64Decode(std::string_view in);
+	
+	JAPI extern pcg32_fast* globalRNG;
+	
+	template <typename G>
+	float RandomFloat(float min, float max, G& gen)
+	{
+		return std::uniform_real_distribution<float>(min, max)(gen);
+	}
+	
+	template <typename G>
+	int RandomInt(int min, int max, G& gen)
+	{
+		return std::uniform_int_distribution<int>(min, max)(gen);
+	}
+	
+	inline float RandomFloat(float min, float max)
+	{
+		return std::uniform_real_distribution<float>(min, max)(*globalRNG);
+	}
+	
+	inline int RandomInt(int min, int max)
+	{
+		return std::uniform_int_distribution<int>(min, max)(*globalRNG);
+	}
 }
