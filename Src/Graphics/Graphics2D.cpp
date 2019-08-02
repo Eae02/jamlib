@@ -266,12 +266,20 @@ void main()
 		}
 	}
 	
-	void Graphics2D::End(int screenWidth, int screenHeight, const glm::mat3& matrix)
+	static const BlendState* blendStates[] = 
+	{
+		&AlphaBlend,
+		&AlphaBlendPreMultiplied,
+		&AdditiveBlend,
+		nullptr
+	};
+	
+	void Graphics2D::End(int screenWidth, int screenHeight, const glm::mat3& matrix, Blend blend)
 	{
 		if (m_batches.empty())
 			return;
 		
-		SetBlendState(&AlphaBlend);
+		SetBlendState(blendStates[(int)blend]);
 		
 		shader->Bind();
 		m_vertexLayout.Bind();
@@ -323,12 +331,12 @@ void main()
 		SetBlendState(nullptr);
 	}
 	
-	void Graphics2D::End(int screenWidth, int screenHeight)
+	void Graphics2D::End(int screenWidth, int screenHeight, Blend blend)
 	{
 		glm::mat3 transform = glm::translate(glm::mat3(1), glm::vec2(-1)) *
 			glm::scale(glm::mat3(1), glm::vec2(2.0f / screenWidth, 2.0f / screenHeight));
 		
-		End(screenWidth, screenHeight, transform);
+		End(screenWidth, screenHeight, transform, blend);
 	}
 	
 	Graphics2D::Vertex::Vertex(const glm::vec2& _position, const glm::vec2& _texCoord, const glm::vec4& _color)
@@ -346,5 +354,19 @@ void main()
 			glm::scale(glm::mat3(1), glm::vec2((zoom * 2) / screenWidth, (zoom * 2) / screenHeight)) *
 			glm::rotate(glm::mat3(1), rotation) *
 			glm::translate(glm::mat3(1), -centerWorld);
+	}
+	
+	glm::mat3 MakeInverseViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation, int screenWidth, int screenHeight)
+	{
+		return
+			glm::translate(glm::mat3(1), centerWorld) *
+			glm::rotate(glm::mat3(1), -rotation) *
+			glm::scale(glm::mat3(1), glm::vec2(screenWidth / (zoom * 2), screenHeight / (zoom * 2)));
+	}
+	
+	glm::vec2 UnprojectScreen2D(const glm::mat3& inverseViewMatrix, glm::vec2 screenCoords)
+	{
+		glm::vec3 ndc(2 * screenCoords.x / CurrentRTWidth() - 1, 1 - 2 * screenCoords.y / CurrentRTHeight(), 1);
+		return glm::vec2(inverseViewMatrix * ndc);
 	}
 }

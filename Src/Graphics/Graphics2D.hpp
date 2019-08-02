@@ -24,6 +24,14 @@ namespace jm
 	class JAPI Graphics2D
 	{
 	public:
+		enum class Blend
+		{
+			Alpha,
+			AlphaPreMultiplied,
+			Additive,
+			Overwrite
+		};
+		
 		Graphics2D();
 		
 		void Begin();
@@ -71,19 +79,19 @@ namespace jm
 		
 		void Line(const glm::vec2& begin, const glm::vec2& end, const glm::vec4& color, float width = 1);
 		
-		void End()
+		void End(Blend blend = Blend::Alpha)
 		{
-			End(CurrentRTWidth(), CurrentRTHeight());
+			End(CurrentRTWidth(), CurrentRTHeight(), blend);
 		}
 		
-		void End(const glm::mat3& matrix)
+		void End(const glm::mat3& matrix, Blend blend = Blend::Alpha)
 		{
-			End(CurrentRTWidth(), CurrentRTHeight(), matrix);
+			End(CurrentRTWidth(), CurrentRTHeight(), matrix, blend);
 		}
 		
-		void End(int screenWidth, int screenHeight);
+		void End(int screenWidth, int screenHeight, Blend blend = Blend::Alpha);
 		
-		void End(int screenWidth, int screenHeight, const glm::mat3& matrix);
+		void End(int screenWidth, int screenHeight, const glm::mat3& matrix, Blend blend = Blend::Alpha);
 		
 		bool Empty() const
 		{
@@ -157,10 +165,18 @@ namespace jm
 		VertexLayout m_vertexLayout;
 	};
 	
+	JAPI glm::mat3 MakeInverseViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation, int screenWidth, int screenHeight);
 	JAPI glm::mat3 MakeViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation, int screenWidth, int screenHeight);
 	
 	inline glm::mat3 MakeViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation)
 	{
 		return MakeViewMatrix2D(centerWorld, zoom, rotation, CurrentRTWidth(), CurrentRTHeight());
 	}
+	
+	inline glm::mat3 MakeInverseViewMatrix2D(glm::vec2 centerWorld, float zoom, float rotation)
+	{
+		return MakeInverseViewMatrix2D(centerWorld, zoom, rotation, CurrentRTWidth(), CurrentRTHeight());
+	}
+	
+	JAPI glm::vec2 UnprojectScreen2D(const glm::mat3& inverseViewMatrix, glm::vec2 screenCoords);
 }

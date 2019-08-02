@@ -130,6 +130,8 @@ namespace jm
 	};
 	
 	JAPI extern const BlendState AlphaBlend;
+	JAPI extern const BlendState AlphaBlendPreMultiplied;
+	JAPI extern const BlendState AdditiveBlend;
 	
 	JAPI void SetBlendState(const BlendState* blendState);
 	

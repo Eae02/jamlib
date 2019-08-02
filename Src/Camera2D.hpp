@@ -14,7 +14,12 @@ namespace jm
 		
 		void Shake(float magnitude, float duration);
 		
-		glm::mat3 ViewMatrix(glm::vec2 target, float zoom = 1, float rotation = 0) const;
+		glm::mat3 ViewMatrix(glm::vec2 target, float zoom = 1, float rotation = 0) const
+		{
+			return ViewMatrixAndInverse(target, zoom, rotation).first;
+		}
+		
+		std::pair<glm::mat3, glm::mat3> ViewMatrixAndInverse(glm::vec2 target, float zoom = 1, float rotation = 0) const;
 		
 		float shakeRoughness;
 		float rotationShakeMagnitude;

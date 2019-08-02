@@ -167,7 +167,26 @@ namespace jm
 		}
 	}
 	
-	const BlendState AlphaBlend = { BlendFunction::Add, BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha };
+	const BlendState AlphaBlend =
+	{
+		BlendFunction::Add,
+		BlendFactor::SrcAlpha,
+		BlendFactor::OneMinusSrcAlpha
+	};
+	
+	const BlendState AlphaBlendPreMultiplied =
+	{
+		BlendFunction::Add,
+		BlendFactor::One,
+		BlendFactor::OneMinusSrcAlpha
+	};
+	
+	const BlendState AdditiveBlend =
+	{
+		BlendFunction::Add,
+		BlendFactor::One,
+		BlendFactor::One
+	};
 	
 	inline static GLenum TranslateBlendFunction(BlendFunction blendFunction)
 	{

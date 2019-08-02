@@ -31,7 +31,7 @@ namespace jm
 		m_shakeBeginTime = std::chrono::high_resolution_clock::now();
 	}
 	
-	glm::mat3 Camera2D::ViewMatrix(glm::vec2 target, float zoom, float rotation) const
+	std::pair<glm::mat3, glm::mat3> Camera2D::ViewMatrixAndInverse(glm::vec2 target, float zoom, float rotation) const
 	{
 		if (!shakeWavesGenerated)
 		{
@@ -65,6 +65,6 @@ namespace jm
 			rotation += (std::sin(t * 0.25f) + std::sin(t * 0.5f + PI)) * shakeMagnitude * rotationShakeMagnitude;
 		}
 		
-		return MakeViewMatrix2D(target, zoom, rotation);
+		return { MakeViewMatrix2D(target, zoom, rotation), MakeInverseViewMatrix2D(target, zoom, rotation) };
 	}
 }
