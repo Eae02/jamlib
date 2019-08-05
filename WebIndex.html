@@ -60,8 +60,17 @@
 				FS.createPreloadedFile(".", "assets.zip", "assets.zip", true, false);
 			};
 			Module.onRuntimeInitialized = function() {
-				document.getElementById("infoWrap").dataset.mode = "hide"
-				Module.cwrap("WebMain", "", [])();
+				FS.mkdir('/jam');
+				FS.mount(IDBFS, {}, '/jam');
+				FS.syncfs(true, function(err) {
+					if (err) {
+						console.log(err);
+						displayError("Error initializing file sync,\nMake sure you are not in a private/incognito window.");
+						return;
+					}
+					document.getElementById("infoWrap").dataset.mode = "hide"
+					Module.cwrap("WebMain", "", [])();
+				});
 			};
 			Module.onAbort = function() {
 				displayError("Unknown Error");

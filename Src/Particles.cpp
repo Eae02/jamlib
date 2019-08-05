@@ -28,6 +28,11 @@ namespace jm
 		m_vertexLayout.SetVertexBuffer(0, *vertexBuffer, 0);
 	}
 	
+	void ParticleManager::KeepAlive(std::shared_ptr<ParticleEmitter> emitter, float time)
+	{
+		m_keepAlive.emplace_back(time, std::move(emitter));
+	}
+	
 	void ParticleManager::AddEmitter(std::weak_ptr<ParticleEmitter> emitter)
 	{
 		//Searches for an available emitter entry
@@ -77,38 +82,43 @@ namespace jm
 		
 		for (EmitterEntry& entry : m_emitters)
 		{
+			if (entry.available)
+				continue;
+			
 			std::shared_ptr<ParticleEmitter> emitter = entry.weakEmitter.lock();
 			if (emitter == nullptr)
 			{
-				entry.available = true;
-				entry.weakEmitter.reset();
-				
-				if (entry.firstPage != nullptr)
+				if (entry.totalParticles == 0)
 				{
-					ParticlePage* lastPage = entry.firstPage;
-					while (lastPage->next)
-						lastPage = lastPage->next;
-					lastPage->next = m_availablePages;
-					m_availablePages = entry.firstPage;
+					entry.available = true;
+					entry.weakEmitter.reset();
+					
+					if (entry.firstPage != nullptr)
+					{
+						ParticlePage* lastPage = entry.firstPage;
+						while (lastPage->next)
+							lastPage = lastPage->next;
+						lastPage->next = m_availablePages;
+						m_availablePages = entry.firstPage;
+					}
+					
+					continue;
 				}
-				
-				continue;
 			}
-			
-			auto& emitterType = const_cast<ParticleEmitterType&>(*entry.type);
-			
-			if (!entry.hasOldData)
+			else if (!entry.hasOldData)
 			{
 				entry.oldPosition = emitter->position;
 				entry.oldRotation = emitter->rotation;
 				entry.hasOldData = true;
 			}
 			
+			auto& emitterType = const_cast<ParticleEmitterType&>(*entry.type);
+			
 			float oldTimeNotEmitted = entry.timeNotEmitted;
 			int numToEmit = 0;
 			
 			float emitDelay = 1.0f / emitterType.emissionRate;
-			if (emitter->enabled)
+			if (emitter && emitter->enabled)
 			{
 				entry.timeNotEmitted += dt;
 				numToEmit = std::floor(oldTimeNotEmitted * emitterType.emissionRate);
@@ -179,7 +189,7 @@ namespace jm
 					}
 				}
 				
-				//Emits new particles
+				//Emits new particles, emitter must not be null here
 				while (numEmitted < numToEmit && page->numParticles < PARTICLES_PER_PAGE)
 				{
 					const uint32_t idx = page->numParticles++;
@@ -247,8 +257,11 @@ namespace jm
 			
 			entry.timeNotEmitted -= (float)numToEmit * emitDelay;
 			
-			entry.oldPosition = emitter->position;
-			entry.oldRotation = emitter->rotation;
+			if (emitter)
+			{
+				entry.oldPosition = emitter->position;
+				entry.oldRotation = emitter->rotation;
+			}
 		}
 		
 		//Uploads particles to the GPU
@@ -262,6 +275,16 @@ namespace jm
 			else
 			{
 				m_particlesBuffer.Realloc(reqBufferSize, m_particleDrawData.data());
+			}
+		}
+		
+		for (int64_t i = (int64_t)m_keepAlive.size() - 1; i >= 0; i--)
+		{
+			m_keepAlive[i].first -= dt;
+			if (m_keepAlive[i].first < 0)
+			{
+				m_keepAlive[i].second.swap(m_keepAlive.back().second);
+				m_keepAlive.pop_back();
 			}
 		}
 	}

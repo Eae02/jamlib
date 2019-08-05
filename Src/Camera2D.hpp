@@ -1,6 +1,7 @@
 #pragma once
 
 #include "API.hpp"
+#include "Rectangle.hpp"
 
 #include <glm/glm.hpp>
 #include <chrono>
@@ -24,6 +25,11 @@ namespace jm
 		
 		float shakeRoughness;
 		float rotationShakeMagnitude;
+		
+		bool constrainToBounds = false;
+		Rectangle bounds;
+		
+		glm::vec2 ConstrainTargetToBounds(glm::vec2 target, float zoom) const;
 		
 	private:
 		float m_shakeMagnitude = 0;

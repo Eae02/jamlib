@@ -4,6 +4,19 @@ struct Game : jm::Game
 {
 	Game()
 	{
+		jm::save::Init("eae", "jamtest");
+		const std::string* numVal = jm::save::GetValue("num");
+		if (numVal)
+		{
+			std::cout << "GOT: " << *numVal << std::endl;
+		}
+		else
+		{
+			std::string val = std::to_string(jm::RandomInt(0, 1000));
+			jm::save::SetValue("num", val);
+			std::cout << "WROTE: " << val << std::endl;
+		}
+		
 		emitter = std::make_shared<jm::ParticleEmitter>(jm::GetAsset<jm::ParticleEmitterType>("ParticleEmitter.ype"));
 		particleManager.AddEmitter(emitter);
 	}

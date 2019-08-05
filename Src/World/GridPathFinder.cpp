@@ -91,7 +91,7 @@ namespace jm
 		for (glm::ivec2 n = m_nodes[destI.y * map.Width() + destI.x].prev; n != sourceI;
 			n = m_nodes[n.y * map.Width() + n.x].prev)
 		{
-			m_tempPath.push_back((glm::vec2(n) + 0.5f) * glm::vec2(map.tileWidth, map.tileHeight) + map.offset);
+			m_tempPath.push_back((glm::vec2(n) + 0.5f) * glm::vec2(map.TileWidth(), map.TileHeight()) + map.Offset());
 		}
 		m_tempPath.push_back(source);
 		

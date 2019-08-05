@@ -5,6 +5,7 @@
 #include "Graphics/Graphics2D.hpp"
 #include "Asset.hpp"
 #include "Audio/Audio.hpp"
+#include "SaveFile.hpp"
 
 #include <SDL.h>
 #include <iostream>
@@ -231,7 +232,7 @@ namespace jm
 		
 		SetRenderTarget(nullptr);
 		
-		game->RunFrame(dt);
+		game->RunFrame(std::min(dt, 1.0f / 20.0f));
 		
 		SDL_GL_SwapWindow(window);
 	}
@@ -254,6 +255,13 @@ namespace jm
 		}
 		
 		Uninit();
+		
+		save::Write();
 #endif
+	}
+	
+	void QuitGame()
+	{
+		shouldClose = true;
 	}
 }

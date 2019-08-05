@@ -136,8 +136,9 @@ namespace jm
 	
 	static inline Asset& FindAsset(std::string_view name, const std::type_index* type)
 	{
-		auto it = std::lower_bound(assets.begin(), assets.end(), name);
-		if (it == assets.end() || it->name != name)
+		std::string nameCanon = CanonicalPath(name);
+		auto it = std::lower_bound(assets.begin(), assets.end(), nameCanon);
+		if (it == assets.end() || it->name != nameCanon)
 		{
 			Panic(Concat({ "Asset not found: '", name, "'." }));
 		}

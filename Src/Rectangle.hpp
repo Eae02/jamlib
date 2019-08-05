@@ -74,6 +74,9 @@ namespace jm
 		
 		bool Contains(const Rectangle& other) const;
 		
+		static std::pair<bool, float> ClipX(const Rectangle& originRect, const Rectangle& solidRect, float moveX);
+		static std::pair<bool, float> ClipY(const Rectangle& originRect, const Rectangle& solidRect, float moveY);
+		
 		inline bool Empty() const
 		{ return w == 0 || h == 0; }
 		

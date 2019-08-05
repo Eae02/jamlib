@@ -11,7 +11,7 @@ make -j4 -C .build/Release-Win32
 emcmake cmake -DCMAKE_BUILD_TYPE=Release -H. -B.build/Release-Web
 emmake make -j4 -C .build/Release-Web
 
-zip -FSj Bin/Release-Linux/assets.zip ./Assets/*
+(cd ./Assets && zip -FSr ../Bin/Release-Linux/assets.zip .)
 cp Bin/Release-Linux/assets.zip Bin/Release-Windows/assets.zip
 cp Bin/Release-Linux/assets.zip Bin/Release-Emscripten/assets.zip
 

@@ -106,6 +106,8 @@ namespace jm
 		static void InitStatic();
 		static void DestroyStatic();
 		
+		bool roundCoordinates = false;
+		
 	private:
 		void InitBatch(const Texture2D& texture, bool redToAlpha);
 		void AddQuadIndices();

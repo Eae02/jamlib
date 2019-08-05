@@ -34,4 +34,6 @@ namespace jm
 	
 	JAPI void Init(int argc, char** argv);
 	JAPI void Run(Game* game);
+	
+	JAPI void QuitGame();
 }

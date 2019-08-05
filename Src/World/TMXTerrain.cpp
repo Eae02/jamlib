@@ -31,48 +31,66 @@ namespace jm
 		
 		TileSet tileSet(texture, tileWidth, tileHeight, margin, margin, spacing, spacing);
 		
-		//Searches for tile data attributes
-		std::vector<std::pair<int, uint32_t>> dataMap;
+		struct TileInfo
+		{
+			uint32_t data;
+			Rectangle hitbox;
+		};
+		
+		uint32_t numTilesX = texture.Width() / tileWidth;
+		uint32_t numTilesY = texture.Height() / tileHeight;
+		
+		//Reads information about tiles
+		std::vector<TileInfo> tileInfo(numTilesX * numTilesY, TileInfo { 0, Rectangle(0, 0, tileWidth, tileHeight) });
 		for (auto tileEl = tileSetXml.FirstChildElement("tile"); tileEl; tileEl = tileEl->NextSiblingElement("tile"))
 		{
-			const tinyxml2::XMLElement* propertiesEl = tileEl->FirstChildElement("properties");
-			if (propertiesEl == nullptr)
+			uint32_t id = tileEl->UnsignedAttribute("id");
+			if (id >= tileInfo.size())
 				continue;
 			
-			uint32_t data;
-			bool hasData = false;
-			for (const tinyxml2::XMLElement* propertyEl = propertiesEl->FirstChildElement("property");
-				propertyEl; propertyEl = propertyEl->NextSiblingElement("property"))
+			if (const tinyxml2::XMLElement* propertiesEl = tileEl->FirstChildElement("properties"))
 			{
-				if (std::strcmp(propertyEl->Attribute("name"), "data") == 0)
+				for (const tinyxml2::XMLElement* propertyEl = propertiesEl->FirstChildElement("property");
+				     propertyEl; propertyEl = propertyEl->NextSiblingElement("property"))
 				{
-					hasData = true;
-					data = std::atoi(propertyEl->Attribute("value"));
-					break;
+					if (std::strcmp(propertyEl->Attribute("name"), "data") == 0)
+					{
+						tileInfo[id].data = std::atoi(propertyEl->Attribute("value"));
+						break;
+					}
 				}
 			}
 			
-			if (hasData)
+			if (const tinyxml2::XMLElement* objGroupEl = tileEl->FirstChildElement("objectgroup"))
 			{
-				dataMap.emplace_back(tileEl->IntAttribute("id"), data);
+				if (const tinyxml2::XMLElement* objEl = objGroupEl->FirstChildElement("object"))
+				{
+					auto GetRectAttrib = [&] (const char* attribName, float def) -> float
+					{
+						if (const char* strVal = objEl->Attribute(attribName))
+							return std::atof(strVal);
+						return def;
+					};
+					
+					tileInfo[id].hitbox.x = GetRectAttrib("x", 0);
+					tileInfo[id].hitbox.y = GetRectAttrib("y", 0);
+					tileInfo[id].hitbox.w = GetRectAttrib("width", tileWidth);
+					tileInfo[id].hitbox.h = GetRectAttrib("height", tileHeight);
+					
+					tileInfo[id].hitbox.y = std::max(tileHeight - tileInfo[id].hitbox.MaxY(), 0.0f);
+					tileInfo[id].hitbox.x = std::max(tileInfo[id].hitbox.x, 0.0f);
+				}
 			}
 		}
-		std::sort(dataMap.begin(), dataMap.end());
 		
 		//Adds tiles
-		size_t dataMapIdx = 0;
-		for (uint32_t y = 0; y < texture.Height() / tileHeight; y++)
+		const TileInfo* nextTileInfo = &tileInfo[0];
+		for (uint32_t y = 0; y < numTilesY; y++)
 		{
-			for (uint32_t x = 0; x < texture.Width() / tileWidth; x++)
+			for (uint32_t x = 0; x < numTilesX; x++)
 			{
-				uint32_t data = 0;
-				if (dataMapIdx < dataMap.size() && dataMap[dataMapIdx].first == (int)tileSet.NumTiles())
-				{
-					data = dataMap[dataMapIdx].second;
-					dataMapIdx++;
-				}
-				
-				tileSet.AddTile(x, y, data);
+				tileSet.AddTile(x, y, nextTileInfo->data, nextTileInfo->hitbox);
+				nextTileInfo++;
 			}
 		}
 		
@@ -98,7 +116,7 @@ namespace jm
 		int remainingIds = width * height;
 		for (auto tileEl = dataXml.FirstChildElement("tile"); tileEl && remainingIds > 0;)
 		{
-			*(idsPtr++) = tileEl->UnsignedAttribute("gid");
+			*(idsPtr++) = tileEl->UnsignedAttribute("gid", 0);
 			tileEl = tileEl->NextSiblingElement("tile");
 			remainingIds--;
 		}
@@ -163,10 +181,11 @@ namespace jm
 			bool isTileLayer = std::strcmp(el->Name(), "layer") == 0;
 			bool isObjectLayer = std::strcmp(el->Name(), "objectgroup") == 0;
 			
-			if ((!isTileLayer && !isObjectLayer) || !el->IntAttribute("visible", 1))
+			if (!isTileLayer && !isObjectLayer)
 				continue;
 			
 			TMXLayer layer;
+			layer.visible = el->IntAttribute("visible", 1);
 			layer.id = el->IntAttribute("id", 0);
 			layer.offset.x = el->IntAttribute("offsetx", 0);
 			layer.offset.y = el->IntAttribute("offsety", 0);
@@ -212,8 +231,18 @@ namespace jm
 						
 						uint32_t maskedId = *tilePtr & ~(FLIPPED_HORIZONTALLY_FLAG | FLIPPED_VERTICALLY_FLAG | FLIPPED_DIAGONALLY_FLAG);
 						
-						auto tileSetIt = std::upper_bound(tileSetsByFirstGId.begin(), tileSetsByFirstGId.end(),
-							std::pair<int, const jm::TileSet*>(maskedId, nullptr)) - 1;
+						uint32_t firstGid;
+						const TileSet* tileSet = nullptr;
+						for (auto& tileSetPair : tileSetsByFirstGId)
+						{
+							if (tileSetPair.first > maskedId)
+								break;
+							firstGid = tileSetPair.first;
+							tileSet = tileSetPair.second;
+						}
+						
+						if (tileSet == nullptr)
+							continue;
 						
 						TileFlags tileFlags = TileFlags::None;
 						if (*tilePtr & FLIPPED_HORIZONTALLY_FLAG)
@@ -223,19 +252,54 @@ namespace jm
 						if (*tilePtr & FLIPPED_DIAGONALLY_FLAG)
 							tileFlags |= TileFlags::FlippedDiag;
 						
-						layer.tileMap->SetTile(x, y, *tileSetIt->second, maskedId - tileSetIt->first, tileFlags);
+						layer.tileMap->SetTile(x, y, *tileSet, maskedId - firstGid, tileFlags);
 					}
 				}
 			}
 			else if (isObjectLayer)
 			{
-				
+				for (const auto* objEl = el->FirstChildElement("object"); objEl; objEl = objEl->NextSiblingElement("object"))
+				{
+					const char* objName = objEl->Attribute("name");
+					const char* x = objEl->Attribute("x");
+					const char* y = objEl->Attribute("y");
+					const char* w = objEl->Attribute("width");
+					const char* h = objEl->Attribute("height");
+					if (objName && x && y)
+					{
+						TMXShape& shape = terrain.m_shapes.emplace_back();
+						shape.name = objName;
+						
+						shape.rect.x = std::atof(x);
+						shape.rect.y = std::atof(y);
+						if (w)
+							shape.rect.w = std::atof(w);
+						if (h)
+							shape.rect.h = std::atof(h);
+						
+						shape.rect.y = terrain.m_mapHeight * terrain.m_tileHeight - shape.rect.MaxY();
+						
+						ParseProperties(shape.properties, objEl->FirstChildElement("properties"));
+					}
+				}
 			}
 			
 			terrain.m_layers.push_back(std::move(layer));
 		}
 		
+		std::sort(terrain.m_shapes.begin(), terrain.m_shapes.end(),
+			[&] (const TMXShape& a, const TMXShape& b) { return a.name < b.name; });
+		
 		return terrain;
+	}
+	
+	gsl::span<const TMXShape> TMXTerrain::GetShapesByName(std::string_view name) const
+	{
+		auto lo = std::lower_bound(m_shapes.begin(), m_shapes.end(), name,
+			[] (const TMXShape& a, std::string_view b) { return a.name < b; });
+		auto hi = std::upper_bound(m_shapes.begin(), m_shapes.end(), name,
+			[] (std::string_view a, const TMXShape& b) { return a < b.name; });
+		return gsl::span<const TMXShape>(&m_shapes[lo - m_shapes.begin()], hi - lo);
 	}
 	
 	void TMXTerrain::Draw(const glm::mat3& transform)
@@ -247,7 +311,7 @@ namespace jm
 		{
 			glm::mat3 layerTransform = glm::translate(fullTransform, glm::vec2(layer.offset) / tileSize);
 			
-			if (layer.tileMap.has_value())
+			if (layer.visible && layer.tileMap.has_value())
 			{
 				layer.tileMap->Draw(layerTransform);
 			}
@@ -256,9 +320,7 @@ namespace jm
 	
 	TileSolidityMap TMXTerrain::MakeSolidityMap(uint32_t dataMask) const
 	{
-		TileSolidityMap solidityMap(m_mapWidth, m_mapHeight);
-		solidityMap.tileWidth = m_tileWidth;
-		solidityMap.tileHeight = m_tileHeight;
+		TileSolidityMap solidityMap(m_mapWidth, m_mapHeight, m_tileWidth, m_tileHeight);
 		for (const TMXLayer& layer : m_layers)
 		{
 			if (layer.tileMap.has_value())
@@ -267,6 +329,16 @@ namespace jm
 			}
 		}
 		return solidityMap;
+	}
+	
+	TMXLayer* TMXTerrain::GetLayerByName(std::string_view name)
+	{
+		for (TMXLayer& layer : m_layers)
+		{
+			if (layer.name == name)
+				return &layer;
+		}
+		return nullptr;
 	}
 	
 	void RegisterTiledAssetLoaders()
@@ -279,9 +351,37 @@ namespace jm
 	{
 		if (elementVoid == nullptr)
 			return;
-		//const tinyxml2::XMLElement& element = *(const tinyxml2::XMLElement*)elementVoid;
+		const tinyxml2::XMLElement& element = *(const tinyxml2::XMLElement*)elementVoid;
 		
+		for (const auto* propEl = element.FirstChildElement("property"); propEl; propEl = propEl->NextSiblingElement("property"))
+		{
+			const char* propName = propEl->Attribute("name");
+			const char* propType = propEl->Attribute("type");
+			const char* propVal = propEl->Attribute("value");
+			if (!propName || !propVal)
+				continue;
+			if (propType == nullptr)
+				propType = "string";
+			
+			if (std::strcmp(propType, "float") == 0)
+			{
+				set.m_properties.emplace_back(propName, (float)std::atof(propVal));
+			}
+			else if (std::strcmp(propType, "int") == 0)
+			{
+				set.m_properties.emplace_back(propName, std::atoi(propVal));
+			}
+			else if (std::strcmp(propType, "string") == 0)
+			{
+				set.m_properties.emplace_back(propName, std::string(propVal));
+			}
+			else if (std::strcmp(propType, "bool") == 0)
+			{
+				set.m_properties.emplace_back(propName, std::strcmp(propVal, "true") == 0);
+			}
+		}
 		
+		std::sort(set.m_properties.begin(), set.m_properties.end(), [] (auto& a, auto& b) { return a.first < b.first; });
 	}
 	
 	TMXPropertyValue TMXPropertySet::GetProperty(std::string_view propName) const
@@ -295,7 +395,7 @@ namespace jm
 		return it->second;
 	}
 	
-	std::optional<float> TMXPropertySet::GetPropertyFloat(std::string_view propName)
+	std::optional<float> TMXPropertySet::GetPropertyFloat(std::string_view propName) const
 	{
 		TMXPropertyValue prop = GetProperty(propName);
 		if (float* val = std::get_if<float>(&prop))
@@ -314,7 +414,7 @@ namespace jm
 		return { };
 	}
 	
-	std::optional<int> TMXPropertySet::GetPropertyInt(std::string_view propName)
+	std::optional<int> TMXPropertySet::GetPropertyInt(std::string_view propName) const
 	{
 		TMXPropertyValue prop = GetProperty(propName);
 		if (int* val = std::get_if<int>(&prop))
@@ -333,7 +433,7 @@ namespace jm
 		return { };
 	}
 	
-	std::optional<std::string> TMXPropertySet::GetPropertyString(std::string_view propName)
+	std::optional<std::string> TMXPropertySet::GetPropertyString(std::string_view propName) const
 	{
 		TMXPropertyValue prop = GetProperty(propName);
 		if (int* val = std::get_if<int>(&prop))

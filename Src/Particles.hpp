@@ -39,6 +39,8 @@ namespace jm
 		
 		void AddEmitter(std::weak_ptr<ParticleEmitter> emitter);
 		
+		void KeepAlive(std::shared_ptr<ParticleEmitter> emitter, float time);
+		
 		void Update(float dt);
 		
 		void Draw(const glm::mat3& viewMatrix);
@@ -111,5 +113,7 @@ namespace jm
 		std::vector<ParticleDrawData> m_particleDrawData;
 		Buffer m_particlesBuffer;
 		VertexLayout m_vertexLayout;
+		
+		std::vector<std::pair<float, std::shared_ptr<ParticleEmitter>>> m_keepAlive;
 	};
 }

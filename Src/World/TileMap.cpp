@@ -94,9 +94,15 @@ namespace jm
 				if (tileSetIdx == 0)
 					continue;
 				tileSetIdx--;
+				if (tileSetIdx >= m_tileSets.size())
+					continue;
 				const TileSet& tileSet = *m_tileSets[tileSetIdx].tileSet;
 				
-				const glm::ivec2 pixelOffset = tileSet.GetTile(tile >> 11U).pixelOffset;
+				const uint32_t tileId = tile >> 11U;
+				if (tileId >= tileSet.NumTiles())
+					continue;
+				
+				const glm::ivec2 pixelOffset = tileSet.GetTile(tileId).pixelOffset;
 				const float uvScaleX = 1.0f / tileSet.GetTexture().Width();
 				const float uvScaleY = 1.0f / tileSet.GetTexture().Height();
 				

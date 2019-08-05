@@ -4,6 +4,9 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "../API.hpp"
+#include "../Rectangle.hpp"
+
 namespace jm
 {
 	using TileID = uint32_t;
@@ -12,9 +15,10 @@ namespace jm
 	{
 		glm::ivec2 pixelOffset;
 		uint32_t data;
+		Rectangle hitbox;
 	};
 	
-	class TileSet
+	class JAPI TileSet
 	{
 	public:
 		TileSet(const class Texture2D& texture, int tileWidth, int tileHeight,
@@ -24,12 +28,10 @@ namespace jm
 		
 		TileID AddTile(int x, int y, uint32_t data)
 		{
-			Tile& tile = m_tiles.emplace_back();
-			tile.pixelOffset.x = m_marginX + x * (m_tileWidth + m_spacingX);
-			tile.pixelOffset.y = m_marginY + y * (m_tileHeight + m_spacingY);
-			tile.data = data;
-			return m_tiles.size() - 1;
+			return AddTile(x, y, data, Rectangle(0, 0, (float)m_tileWidth, (float)m_tileHeight));
 		}
+		
+		TileID AddTile(int x, int y, uint32_t data, const Rectangle& hitbox);
 		
 		const Tile& GetTile(TileID id) const
 		{

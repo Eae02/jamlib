@@ -13,7 +13,8 @@ namespace jm
 	class JAPI TileSolidityMap
 	{
 	public:
-		TileSolidityMap(uint32_t width, uint32_t height);
+		TileSolidityMap(uint32_t width, uint32_t height, float tileWidth, float tileHeight,
+			glm::vec2 offset = glm::vec2(0));
 		
 		void Apply(const class TileMap& tileMap, uint32_t dataMask, glm::ivec2 dstOffset = { });
 		
@@ -67,17 +68,34 @@ namespace jm
 		uint32_t Height() const
 		{ return m_height; }
 		
-		float tileWidth = 1;
-		float tileHeight = 1;
-		glm::vec2 offset;
+		float ToLocalX(float v) const { return (v - m_offset.x) / m_tileWidth; }
+		float ToLocalY(float v) const { return (v - m_offset.y) / m_tileHeight; }
+		glm::vec2 ToLocal(glm::vec2 v) const { return (v - m_offset) / glm::vec2(m_tileWidth, m_tileHeight); };
 		
-		float ToLocalX(float v) const { return (v - offset.x) / tileWidth; }
-		float ToLocalY(float v) const { return (v - offset.y) / tileHeight; }
-		glm::vec2 ToLocal(glm::vec2 v) const { return (v - offset) / glm::vec2(tileWidth, tileHeight); };
+		float TileWidth() const
+		{
+			return m_tileWidth;
+		}
+		
+		float TileHeight() const
+		{
+			return m_tileHeight;
+		}
+		
+		glm::vec2 Offset() const
+		{
+			return m_offset;
+		}
+		
+		void DrawCollision(class Graphics2D& gfx) const;
 		
 	private:
+		float m_tileWidth = 1;
+		float m_tileHeight = 1;
+		glm::vec2 m_offset;
 		uint32_t m_width;
 		uint32_t m_height;
 		std::vector<bool> m_isSolid;
+		std::vector<Rectangle> m_hitboxes;
 	};
 }

@@ -68,4 +68,42 @@ namespace jm
 			std::abs(max.y - min.y)
 		);
 	}
+	
+	constexpr float SMALL = 1E-3f;
+	
+	std::pair<bool, float> Rectangle::ClipX(const Rectangle& originRect, const Rectangle& solidRect, float moveX)
+	{
+		if (originRect.y > solidRect.MaxY() + SMALL || originRect.MaxY() < solidRect.y - SMALL)
+			return { false, moveX };
+		
+		if (moveX < 0 && originRect.x > solidRect.MaxX() && originRect.x + moveX - SMALL < solidRect.MaxX())
+		{
+			return { true, solidRect.MaxX() - originRect.x + SMALL };
+		}
+		
+		if (moveX > 0 && originRect.MaxX() < solidRect.x && originRect.MaxX() + moveX + SMALL > solidRect.x)
+		{
+			return { true, solidRect.x - originRect.MaxX() - SMALL };
+		}
+		
+		return { false, moveX };
+	}
+	
+	std::pair<bool, float> Rectangle::ClipY(const Rectangle& originRect, const Rectangle& solidRect, float moveY)
+	{
+		if (originRect.x > solidRect.MaxX() + SMALL || originRect.MaxX() < solidRect.x - SMALL)
+			return { false, moveY };
+		
+		if (moveY < 0 && originRect.y > solidRect.MaxY() && originRect.y + moveY - SMALL < solidRect.MaxY())
+		{
+			return { true, solidRect.MaxY() - originRect.y + SMALL };
+		}
+		
+		if (moveY > 0 && originRect.MaxY() < solidRect.y && originRect.MaxY() + moveY + SMALL > solidRect.y)
+		{
+			return { true, solidRect.y - originRect.MaxY() - SMALL };
+		}
+		
+		return { false, moveY };
+	}
 }

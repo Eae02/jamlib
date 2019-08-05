@@ -3,6 +3,7 @@
 #include <variant>
 #include <list>
 #include <optional>
+#include <variant>
 #include <gsl/span>
 
 #include "TileMap.hpp"
@@ -18,9 +19,9 @@ namespace jm
 		
 		TMXPropertyValue GetProperty(std::string_view propName) const;
 		
-		std::optional<float> GetPropertyFloat(std::string_view propName);
-		std::optional<int> GetPropertyInt(std::string_view propName);
-		std::optional<std::string> GetPropertyString(std::string_view propName);
+		std::optional<float> GetPropertyFloat(std::string_view propName) const;
+		std::optional<int> GetPropertyInt(std::string_view propName) const;
+		std::optional<std::string> GetPropertyString(std::string_view propName) const;
 		
 	private:
 		friend void ParseProperties(TMXPropertySet& set, const void* elementVoid);
@@ -37,6 +38,14 @@ namespace jm
 		std::string name;
 		glm::ivec2 offset;
 		std::optional<TileMap> tileMap;
+		bool visible;
+		TMXPropertySet properties;
+	};
+	
+	struct TMXShape
+	{
+		std::string name;
+		Rectangle rect;
 		TMXPropertySet properties;
 	};
 	
@@ -56,6 +65,16 @@ namespace jm
 		
 		class TileSolidityMap MakeSolidityMap(uint32_t dataMask) const;
 		
+		const TMXShape* GetShapeByName(std::string_view name) const
+		{
+			auto span = GetShapesByName(name);
+			return span.empty() ? nullptr : &span[0];
+		}
+		
+		gsl::span<const TMXShape> GetShapesByName(std::string_view name) const;
+		
+		TMXLayer* GetLayerByName(std::string_view name);
+		
 	private:
 		TMXTerrain() = default;
 		
@@ -66,5 +85,7 @@ namespace jm
 		
 		std::list<TileSet> m_ownedTileSets;
 		std::vector<TMXLayer> m_layers;
+		
+		std::vector<TMXShape> m_shapes;
 	};
 }

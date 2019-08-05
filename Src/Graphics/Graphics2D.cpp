@@ -151,13 +151,11 @@ void main()
 		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipX)
 		{
 			std::swap(uOffsets[0], uOffsets[1]);
-			origin.x = texRectangle.w - origin.x;
 		}
 		
 		if ((uint32_t)flipFlags & (uint32_t)SpriteFlags::FlipY)
 		{
 			std::swap(vOffsets[0], vOffsets[1]);
-			origin.y = texRectangle.h - origin.y;
 		}
 		
 		const float cosR = std::cos(rotation);
@@ -283,6 +281,12 @@ void main()
 		
 		shader->Bind();
 		m_vertexLayout.Bind();
+		
+		if (roundCoordinates)
+		{
+			for (Vertex& v : m_vertices)
+				v.position = glm::round(v.position);
+		}
 		
 		//Reallocates the vertex buffer if it's too small
 		if (m_vertexBufferCapacity < m_vertices.size())
