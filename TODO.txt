@@ -1,0 +1,15 @@
+Features:
+ - Font Rendering
+ - Keybinding system
+ - Menu system
+ - Fullscreen
+ - Change window title
+ - Post processing stack
+   - Blur
+   - Vingette
+   - Grayscale
+   - Color LUT
+
+Bugs to fix:
+ - Particles not spawning from some emitters
+ - Sounds not working in emscripten
