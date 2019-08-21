@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		
+		<link rel="shortcut icon" type="image/png" href="favicon.png"/>
 		<style>
 			body {
 				overflow: hidden;
@@ -54,7 +54,6 @@
 				document.getElementById("infoWrap").dataset.mode = "err";
 				document.getElementById("infoText").innerText = msg;
 			}
-			
 			Module.canvas = document.getElementById("canvas");
 			Module.preRun = function() {
 				FS.createPreloadedFile(".", "assets.zip", "assets.zip", true, false);

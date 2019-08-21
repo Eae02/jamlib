@@ -8,12 +8,18 @@
 #include "SaveFile.hpp"
 
 #include <SDL.h>
+#include <stb_image.h>
 #include <iostream>
+
+#ifdef __linux__
+#include <dlfcn.h>
+#endif
 
 namespace jm
 {
 	static SDL_Window* window;
 	static SDL_GLContext glContext;
+	static SDL_Surface* windowIcon;
 	static Game* game;
 	static bool shouldClose = false;
 	static bool firstMouseMotionEvent = true;
@@ -85,6 +91,33 @@ namespace jm
 		if (window == nullptr)
 		{
 			Panic(SDL_GetError());
+		}
+		
+		uint8_t* iconStart = nullptr;
+		size_t iconSize = 0;
+		
+#ifdef __linux__
+		if (void* selfLib = dlopen(nullptr, RTLD_LAZY))
+		{
+			iconStart = static_cast<uint8_t*>(dlsym(selfLib, "_binary_jm_game_icon_start"));
+			uint8_t* iconEnd = static_cast<uint8_t*>(dlsym(selfLib, "_binary_jm_game_icon_end"));
+			if (iconStart != nullptr && iconEnd != nullptr)
+			{
+				iconSize = iconEnd - iconStart;
+			}
+		}
+#endif
+		
+		if (iconStart != nullptr)
+		{
+			int iconWidth, iconHeight, iconComp;
+			stbi_uc* imageData = stbi_load_from_memory(iconStart, iconSize, &iconWidth, &iconHeight, &iconComp, 4);
+			if (imageData != nullptr)
+			{
+				windowIcon = SDL_CreateRGBSurfaceFrom(imageData, iconWidth, iconHeight, 32,
+					4 * iconWidth, 0x000000FFU, 0x0000FF00U, 0x00FF0000U, 0xFF000000U);
+				SDL_SetWindowIcon(window, windowIcon);
+			}
 		}
 		
 		detail::currentIS = new InputState;
@@ -266,6 +299,14 @@ namespace jm
 		
 		Uninit();
 		
+		SDL_DestroyWindow(window);
+		
+		if (windowIcon != nullptr)
+		{
+			SDL_FreeSurface(windowIcon);
+			windowIcon = nullptr;
+		}
+		
 		save::Write();
 #endif
 	}
@@ -273,5 +314,10 @@ namespace jm
 	void QuitGame()
 	{
 		shouldClose = true;
+	}
+	
+	void SetWindowTitle(const std::string& title)
+	{
+		SDL_SetWindowTitle(window, title.c_str());
 	}
 }

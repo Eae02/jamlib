@@ -3,6 +3,7 @@
 #include "Graphics.hpp"
 #include "Sampler.hpp"
 #include "../Asset.hpp"
+#include "../Utils.hpp"
 
 #include <stb_image.h>
 #include <iostream>
@@ -160,8 +161,7 @@ namespace jm
 		
 		if (imageData == nullptr)
 		{
-			std::cerr << "Failed to load image: " << stbi_failure_reason() << std::endl;
-			std::abort();
+			Panic(Concat({ "Failed to load image: ", stbi_failure_reason() }));
 		}
 		
 		Format format = Format::RGBA8_UNorm;

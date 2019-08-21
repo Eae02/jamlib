@@ -36,4 +36,6 @@ namespace jm
 	JAPI void Run(Game* game);
 	
 	JAPI void QuitGame();
+	
+	JAPI void SetWindowTitle(const std::string& title);
 }

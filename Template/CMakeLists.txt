@@ -4,7 +4,7 @@ project(%PROJECT_NAME% CXX CXXPCH)
 
 include("JamLib/CMakeInclude.cmake")
 
-file(GLOB_RECURSE SOURCE_FILES Src/*.cpp Src/*.hpp)
+file(GLOB_RECURSE SOURCE_FILES Src/*.cpp Src/*.hpp WinRes.rc)
 add_executable(%PROJECT_NAME% ${SOURCE_FILES})
 
 set_target_properties(%PROJECT_NAME% PROPERTIES
