@@ -17,6 +17,8 @@ namespace jm::save
 	
 	static std::string savePath;
 	
+	bool clearSave;
+	
 	void Init(const char* org, const char* app)
 	{
 #ifdef __EMSCRIPTEN__
@@ -26,6 +28,9 @@ namespace jm::save
 		savePath = Concat({ prefPath, "settings.yaml" });
 		SDL_free(prefPath);
 #endif
+		
+		if (clearSave)
+			return;
 		
 		std::ifstream stream(savePath, std::ios::binary);
 		if (!stream)

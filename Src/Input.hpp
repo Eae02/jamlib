@@ -195,6 +195,8 @@ namespace jm
 		
 		void OnAxisMoved(ControllerAxis axis, float newValue)
 		{
+			if (axis == ControllerAxis::LeftY || axis == ControllerAxis::RightY)
+				newValue = -newValue;
 			m_axisValues[(int)axis] = newValue;
 		}
 		
@@ -213,7 +215,7 @@ namespace jm
 			return { scrollX, scrollY };
 		}
 		
-		float AxisValue(ControllerAxis axis)
+		float AxisValue(ControllerAxis axis) const
 		{
 			return m_axisValues[(int)axis];
 		}
@@ -274,6 +276,11 @@ namespace jm
 	inline bool WasButtonDown(Button button)
 	{
 		return detail::previousIS->IsButtonDown(button);
+	}
+	
+	inline bool IsButtonDownNow(Button button)
+	{
+		return detail::currentIS->IsButtonDown(button) && !detail::previousIS->IsButtonDown(button);
 	}
 	
 	inline glm::ivec2 CursorPos()
@@ -349,5 +356,54 @@ namespace jm
 	inline glm::vec2 PrevRightAnalogValue()
 	{
 		return detail::previousIS->RightAnalogValue();
+	}
+	
+	//Useful for character movement that can be controlled using the keyboard or a controller axis.
+	//Returns -1 if only btnNeg is down, +1 if only btnPos is down, 0 if both btnNeg and btnPos are down.
+	//If none of the specified buttons are down, returns the value of the given controller axis.
+	JAPI float AxisButtonValue(std::initializer_list<Button> btnNeg, std::initializer_list<Button> btnPos,
+		ControllerAxis axis, const InputState& inputState);
+	
+	inline float AxisButtonValue(std::initializer_list<Button> btnNeg, std::initializer_list<Button> btnPos,
+		ControllerAxis axis)
+	{
+		return AxisButtonValue(btnNeg, btnPos, axis, *detail::currentIS);
+	}
+	
+	//Shorthand for AxisButtonValue that may be useful for moving a character left and right.
+	inline float AxisValueLR()
+	{
+		return AxisButtonValue(
+			{ Button::A, Button::LeftArrow, Button::CtrlrDPadLeft },
+			{ Button::D, Button::RightArrow, Button::CtrlrDPadRight },
+			ControllerAxis::LeftX);
+	}
+	
+	//Shorthand for AxisButtonValue that may be useful for moving a character up and down.
+	inline float AxisValueUD()
+	{
+		return AxisButtonValue(
+			{ Button::S, Button::DownArrow, Button::CtrlrDPadDown },
+			{ Button::W, Button::UpArrow, Button::CtrlrDPadUp },
+			ControllerAxis::LeftY);
+	}
+	
+	JAPI void SetInputBinding(std::string_view name, std::vector<Button> buttons);
+	
+	JAPI bool IsBindingDown(std::string_view bindingName, const InputState& inputState);
+	
+	inline bool IsBindingDown(std::string_view bindingName)
+	{
+		return IsBindingDown(bindingName, *detail::currentIS);
+	}
+	
+	inline bool WasBindingDown(std::string_view bindingName)
+	{
+		return IsBindingDown(bindingName, *detail::previousIS);
+	}
+	
+	inline bool IsBindingDownNow(std::string_view bindingName)
+	{
+		return IsBindingDown(bindingName, *detail::currentIS) && !IsBindingDown(bindingName, *detail::previousIS);
 	}
 }

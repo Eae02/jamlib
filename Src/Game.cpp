@@ -25,6 +25,7 @@ namespace jm
 	Button TranslateSDLControllerButton(int button);
 	Button TranslateSDLMouseButton(int button);
 	void AddGameController(SDL_GameController* controller);
+	void LoadGameControllers();
 	
 	void RegisterTiledAssetLoaders();
 	void RegisterAudioAssetLoaders();
@@ -41,9 +42,14 @@ namespace jm
 	
 	bool debugMode = false;
 	
+	namespace save
+	{
+		extern bool clearSave;
+	}
+	
 	void Init(int argc, char** argv)
 	{
-		if (SDL_Init(SDL_INIT_VIDEO))
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER))
 		{
 			std::cerr << "SDL failed to initialize: " << SDL_GetError() << std::endl;
 			std::exit(1);
@@ -55,6 +61,8 @@ namespace jm
 		{
 			if (std::strcmp(argv[i], "--dbg") == 0)
 				debugMode = true;
+			if (std::strcmp(argv[i], "--clearsave") == 0 || std::strcmp(argv[i], "--cs") == 0)
+				save::clearSave = true;
 		}
 		
 #ifdef __EMSCRIPTEN__
@@ -105,6 +113,8 @@ namespace jm
 		RegisterAudioAssetLoaders();
 		RegisterParticleEmitterAssetLoader();
 		Texture2D::RegisterAssetLoader();
+		
+		LoadGameControllers();
 		
 		detail::LoadAssets();
 	}

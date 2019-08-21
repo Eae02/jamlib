@@ -518,4 +518,60 @@ namespace jm
 	{
 		return g_relMouseMode;
 	}
+	
+	float AxisButtonValue(std::initializer_list<Button> btnNeg, std::initializer_list<Button> btnPos,
+		ControllerAxis axis, const InputState& inputState)
+	{
+		if (std::any_of(btnNeg.begin(), btnNeg.end(), [&] (Button btn) { return inputState.IsButtonDown(btn); }))
+			return -1;
+		if (std::any_of(btnPos.begin(), btnPos.end(), [&] (Button btn) { return inputState.IsButtonDown(btn); }))
+			return 1;
+		return inputState.AxisValue(axis);
+	}
+	
+	struct InputBinding
+	{
+		std::string name;
+		std::vector<Button> buttons;
+		
+		bool operator<(std::string_view o) const
+		{
+			return name < o;
+		}
+	};
+	static std::vector<InputBinding> inputBindings;
+	
+	void SetInputBinding(std::string_view name, std::vector<Button> buttons)
+	{
+		auto it = std::lower_bound(inputBindings.begin(), inputBindings.end(), name);
+		if (it != inputBindings.end() && it->name == name)
+		{
+			it->buttons = std::move(buttons);
+		}
+		else
+		{
+			inputBindings.insert(it, InputBinding { std::string(name), std::move(buttons) });
+		}
+	}
+	
+	static std::vector<std::string> warnedMissingBindings;
+	
+	bool IsBindingDown(std::string_view bindingName, const InputState& inputState)
+	{
+		auto it = std::lower_bound(inputBindings.begin(), inputBindings.end(), bindingName);
+		if (it == inputBindings.end() || it->name != bindingName)
+		{
+			if (!Contains(warnedMissingBindings, bindingName))
+			{
+				std::cerr << "Input binding not initialized: '" << bindingName << "'.\n";
+				warnedMissingBindings.emplace_back(bindingName);
+			}
+			return false;
+		}
+		
+		return std::any_of(it->buttons.begin(), it->buttons.end(), [&] (Button btn)
+		{
+			return inputState.IsButtonDown(btn);
+		});
+	}
 }
